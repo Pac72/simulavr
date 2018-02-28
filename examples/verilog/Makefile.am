@@ -45,7 +45,7 @@ spi-waveforms.elf: spi-waveforms.o
 	$(AVR_GCC) -mmcu=atmega8 $^ -o $@
 
 .s.o:
-	$(AVR_GCC) -c -Wa,-gstabs -x assembler-with-cpp -o $@ $<
+	$(AVR_GCC) -mmcu=attiny25 -c -Wa,-gstabs -x assembler-with-cpp -o $@ $<
 
 left-unit.elf: left-unit.o csinglepincomm.o
 

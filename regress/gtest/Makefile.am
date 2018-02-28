@@ -7,8 +7,6 @@ GTEST_OBJS = gtest-1.6.0/src/gtest-all.cc
 
 GTEST_INCLUDE = -Igtest-1.6.0/include/gtest -Igtest-1.6.0/include -Igtest-1.6.0
 
-GTEST_CXXFLAGS = -Dprivate=public -Dprotected=public 
-
 GTEST_EXTRA_FILES = gtest-1.6.0/src/gtest-internal-inl.h \
                     gtest-1.6.0/src/gtest-filepath.cc \
                     gtest-1.6.0/src/gtest.cc \
@@ -70,7 +68,7 @@ OBJS_TARGET = session_001/avr_code.atmega32.o \
               session_irq_check/tc3.atmega32.o \
               session_io_pin/tc1.atmega128.o
 
-AM_CXXFLAGS = $(GTEST_CXXFLAGS) $(GTEST_INCLUDE) $(SIMULAVR_INCLUDE) -g
+AM_CXXFLAGS = $(GTEST_INCLUDE) $(SIMULAVR_INCLUDE) -g
 
 EXTRA_DIST = $(OBJS_SRC) $(GTEST_EXTRA_FILES)
 
