@@ -53,6 +53,7 @@
 SystemConsoleHandler::SystemConsoleHandler() {
     useExitAndAbort = true;
     nullStream = new std::ostream(0);
+    dbgStream = &std::cout;
     msgStream = &std::cout;
     wrnStream = &std::cerr;
     traceStream = nullStream;
@@ -66,6 +67,10 @@ SystemConsoleHandler::~SystemConsoleHandler() {
 
 void SystemConsoleHandler::SetUseExit(bool useExit) {
     useExitAndAbort = useExit;
+}
+
+void SystemConsoleHandler::SetDebugStream(std::ostream *s) {
+    dbgStream = s;
 }
 
 void SystemConsoleHandler::SetMessageStream(std::ostream *s) {
@@ -125,6 +130,24 @@ void SystemConsoleHandler::TraceNextLine(void) {
         
         traceStream = os;
     }
+}
+
+void SystemConsoleHandler::vfdebug(const int level, const char *fmt, ...) {
+    if (level >= global_verbosity_level) {
+		return;
+	}
+
+    va_list ap;
+    snprintf(formatStringBuffer, sizeof(formatStringBuffer),
+             "DEBUG%d %s", level - 1, fmt);
+    va_start(ap, fmt);
+    vsnprintf(messageStringBuffer, sizeof(messageStringBuffer),
+              formatStringBuffer, ap);
+    va_end(ap);
+    *dbgStream << messageStringBuffer;
+    if(fmt[strlen(fmt) - 1] != '\n')
+        *dbgStream << std::endl;
+    dbgStream->flush();
 }
 
 void SystemConsoleHandler::vfmessage(const char *fmt, ...) {
@@ -224,6 +247,7 @@ char* SystemConsoleHandler::getFormatString(const char *prefix,
 SystemConsoleHandler sysConHandler;
 
 int global_verbose_on = 0;
+int global_verbosity_level = 0;
 
 void trioaccess(const char *t, unsigned char val) {
     sysConHandler.traceOutStream() << t << "=" << HexChar(val) << " ";
