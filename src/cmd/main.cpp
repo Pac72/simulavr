@@ -123,7 +123,7 @@ const char Usage[] =
     "                      add a special register at IO-offset\n"
     "                      which exits simulator run\n"
     "-C --core-dump <name> dump a core memory image <name> to file on exit\n"
-    "-v --verbose          output some hints to console\n"
+    "-v --verbose          output some hints to console. Multiple -v options increase verbosity.\n"
     "-T --terminate <label> or <address>\n"
     "                      stops simulation if PC runs on <label> or <address>\n"
     "-B --breakpoint <label> or <address>\n"
@@ -205,7 +205,12 @@ int main(int argc, char *argv[]) {
                 break;
             
             case 'v':
-                global_verbose_on = 1;
+                if (global_verbose_on == 0) {
+                    global_verbose_on = 1;
+                    global_verbosity_level = 1;
+                } else {
+                    global_verbosity_level++;
+                }
                 break;
             
             case 'R': //read from pipe 
