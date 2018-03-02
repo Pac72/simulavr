@@ -55,6 +55,8 @@ class SystemConsoleHandler {
         
         //! Tells the handler, that exit/abort is to use instead of exceptions
         void SetUseExit(bool useExit = true);
+        //! Sets the debug stream, where debug messages are sent to
+        void SetDebugStream(std::ostream *s);
         //! Sets the output stream, where messages are sent to
         void SetMessageStream(std::ostream *s);
         //! Sets the output stream, where warnings and errors are sent to
@@ -73,6 +75,9 @@ class SystemConsoleHandler {
         //! Ends a trace line, performs reopen new filestream, if necessary
         void TraceNextLine(void);
         
+        //! Format and send a debug message to message stream (default stdout)
+        void vfdebug(const int level, const char *fmt, ...)
+            ATTRIBUTE_PRINTF(3, 4);
         //! Format and send a message to message stream (default stdout)
         void vfmessage(const char *fmt, ...)
             ATTRIBUTE_PRINTF(2, 3);
@@ -98,6 +103,7 @@ class SystemConsoleHandler {
         bool useExitAndAbort; //!< Flag, if exit/abort have to be used instead of exceptions
         char formatStringBuffer[192]; //!< Buffer for format strings to format a message
         char messageStringBuffer[768]; //!< Buffer for built message string itself, 4 times bigger than formatStringBuffer
+        std::ostream *dbgStream; //!< Stream, where debug messages are sent to
         std::ostream *msgStream; //!< Stream, where normal messages are sent to
         std::ostream *wrnStream; //!< Stream, where warning and error messages are sent to
         std::ostream *traceStream; //!< Stream for trace output
@@ -122,11 +128,13 @@ extern SystemConsoleHandler sysConHandler;
 // moved from trace.h
 //! Verbose enable flag
 extern int global_verbose_on;
+extern int global_verbosity_level;
 
 // moved from trace.h
 //! Helper function for writing trace (trace IO access)
 void trioaccess(const char *t, unsigned char val);
 
+#define avr_debug(...)   sysConHandler.vfdebug(2, __VA_ARGS__)
 #define avr_message(...) sysConHandler.vfmessage(__VA_ARGS__)
 #define avr_warning(...) sysConHandler.vfwarning(__FILE__, __LINE__, ## __VA_ARGS__)
 #define avr_failure(...) sysConHandler.vferror(__FILE__, __LINE__, ## __VA_ARGS__)
