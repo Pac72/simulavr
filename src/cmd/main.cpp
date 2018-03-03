@@ -315,8 +315,6 @@ int main(int argc, char *argv[]) {
                 break;
             
             case 'n':
-                cout << "We will NOT wait for a gdb connection, "
-                        "simulation starts now!" << endl;
                 globalWaitForGdbConnection = false;
                 break;
             
@@ -439,29 +437,33 @@ int main(int argc, char *argv[]) {
     dman->start(); // start dump session
     
     long steps = 0;
-    if(gdbserver_flag == false) { // no gdb
-        SystemClock::Instance().Add(dev1);
-        if(maxRunTime == 0) {
-            steps = SystemClock::Instance().Endless();
-            cout << "SystemClock::Endless stopped" << endl
-                 << "number of cpu cycles simulated: " << dec << steps << endl;
-        } else {                                           // limited
-            steps = SystemClock::Instance().Run(maxRunTime);
-            cout << "Ran too long. Terminated after "
-                 << dec << steps << " cpu cycles simulated." << endl;
+
+    if(gdbserver_flag) { // gdb should be activated
+        avr_message("Starting simulation - debugging interface enabled");
+        if (globalWaitForGdbConnection) {
+            avr_message("Waiting for gdb connection ...");
+        } else {
+            avr_message("We will NOT wait for a gdb connection, simulation starts now!");
         }
-        Application::GetInstance()->PrintResults();
-    } else { // gdb should be activated
-        avr_message("Waiting for gdb connection ...");
         GdbServer gdb1(dev1, global_gdbserver_port, global_gdb_debug, globalWaitForGdbConnection);
         SystemClock::Instance().Add(&gdb1);
         SystemClock::Instance().Endless();
-        if(global_verbose_on) {
-            cout << "SystemClock::Endless stopped" << endl
-                 << "number of cpu cycles simulated: " << dec << steps << endl;
-            Application::GetInstance()->PrintResults();
+        avr_message("Simulation interrupted");
+    } else { // no gdb
+        avr_message("Starting simulation - debugging interface disabled");
+        SystemClock::Instance().Add(dev1);
+        if(maxRunTime == 0) {
+            steps = SystemClock::Instance().Endless();
+            avr_message("Simulation interrupted");
+        } else { // limited
+            avr_message("Running for at most %llu ns", maxRunTime);
+            steps = SystemClock::Instance().Run(maxRunTime);
+            avr_message("Simulation reached time limit of %llu ns", maxRunTime);
         }
     }
+
+    avr_message("CPU ran for %ld cycles", steps);
+    Application::GetInstance()->PrintResults();
     
     dman->stopApplication(); // stop dump session. Close dump files, if necessary
     
