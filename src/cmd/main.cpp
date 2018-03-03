@@ -346,6 +346,11 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    if(!gdbserver_flag && filename == "unknown") {
+        cerr << "Specify either --file <executable> or --gdbserver (or --gdb-stdin)" << endl;
+        exit(1);
+    }
+
     /* get dump manager and inform it, that we have a single device application */
     DumpManager *dman = DumpManager::Instance();
     dman->SetSingleDeviceApp();
@@ -373,11 +378,6 @@ int main(int argc, char *argv[]) {
     
     /* handle DumpTrace option */
     SetDumpTraceArgs(tracer_opts, dev1);
-    
-    if(!gdbserver_flag && filename == "unknown") {
-        cerr << "Specify either --file <executable> or --gdbserver (or --gdb-stdin)" << endl;
-        exit(1);
-    }
     
     //if we want to insert some special "pipe" Registers we could do this here:
     if(readFromPipeFileName != "") {
