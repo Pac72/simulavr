@@ -270,8 +270,8 @@ bool GdbServerSocketUnix::Connect(void) {
 
         /* If we got this far, we now have a client connected and can start 
         processing. */
-        fprintf(stderr, "Connection opened by host %s, port %hd.\n",
-                inet_ntoa(address->sin_addr), ntohs(address->sin_port));
+        avr_debug("Connection opened by host %s, port %hd",
+                  inet_ntoa(address->sin_addr), ntohs(address->sin_port));
 
         return true;
     } else
@@ -303,7 +303,7 @@ GdbServer::GdbServer(AvrDevice *c, int _port, int debug, int _waitForGdbConnecti
     server = new GdbServerSocketUnix(_port);
 #endif
 
-    fprintf(stderr, "Waiting on port %d for gdb client to connect...\n", _port);
+    avr_debug("Waiting on port %d for gdb client to connect...", _port);
 
 }
 
@@ -401,8 +401,7 @@ const char* GdbServer::gdb_last_reply( const char *reply )
 //! Acknowledge a packet from GDB
 void GdbServer::gdb_send_ack( )
 {
-    if (global_debug_on)
-        fprintf( stderr, " Ack -> gdb\n");
+    avr_debug("GdbServer::gdb_send_ack(): Ack -> gdb");
 
     server->Write( "+", 1 );
 }
@@ -416,15 +415,13 @@ void GdbServer::gdb_send_reply( const char *reply )
     /* Save the reply to last reply so we can resend if need be. */
     gdb_last_reply( reply );
 
-    if (global_debug_on)
-        fprintf( stderr, "Sent: $%s#", reply );
+    avr_debug("GdbServer::gdb_send_reply(): sending $%s#", reply );
 
     if (*reply == '\0')
     {
         server->Write( "$#00", 4 );
 
-        if (global_debug_on)
-            fprintf( stderr, "%02x\n", cksum & 0xff );
+        avr_debug("GdbServer::gdb_send_reply(): Wrote $#00 - cksum: 0x%02x\n", cksum & 0xff );
     }
     else
     {
@@ -448,8 +445,7 @@ void GdbServer::gdb_send_reply( const char *reply )
             }
         }
 
-        if (global_debug_on)
-            fprintf( stderr, "%02x\n", cksum & 0xff );
+        avr_debug("%02x\n", cksum & 0xff );
 
         buf[bytes++] = '#';
         buf[bytes++] = HEX_DIGIT[(cksum >> 4) & 0xf];
@@ -952,8 +948,7 @@ void GdbServer::gdb_write_memory(const char *pkt) {
         int sig3 = (hex2nib(*pkt++) << 4); sig3 += hex2nib(*pkt++);
         int sig2 = (hex2nib(*pkt++) << 4); sig2 += hex2nib(*pkt++);
         int sig1 = (hex2nib(*pkt++) << 4); sig1 += hex2nib(*pkt++);
-        if (global_debug_on)
-            fprintf(stderr, "Device signature %02x %02x %02x\n", sig1, sig2, sig3);
+        avr_debug("Device signature %02x %02x %02x\n", sig1, sig2, sig3);
     }
     else
     {
@@ -1059,8 +1054,7 @@ void GdbServer::gdb_select_thread(const char *pkt)
     if(pkt[0] != 'g') {
         gdb_send_reply( "" );
         pkt--;
-        if (global_debug_on)
-            fprintf(stderr, "gdb  '%s' not supported\n", pkt);
+        avr_debug("gdb  '%s' not supported\n", pkt);
         return;
     }
 
@@ -1073,8 +1067,7 @@ void GdbServer::gdb_select_thread(const char *pkt)
         }
     }
 
-    if (global_debug_on)
-        fprintf(stderr, "gdb* set thread %d\n", thread_id);
+    avr_debug("gdb* set thread %d\n", thread_id);
     m_gdb_thread_id = (thread_id >= 1) ? thread_id : 1;  // Values "0" (any) and "1" (all) are not supported
     gdb_send_reply( "OK" );
 }
@@ -1089,8 +1082,7 @@ void GdbServer::gdb_is_thread_alive(const char *pkt)
             thread_id = thread_id << 4 | hex2nib(*p);
         }
     }
-    if (global_debug_on)
-        fprintf(stderr, "gdb  is thread %d alive\n", thread_id);
+    avr_debug("gdb  is thread %d alive\n", thread_id);
     bool alive = core->stack->m_ThreadList.IsGDBThreadAlive(thread_id);
     assert(alive);
     gdb_send_reply( alive ? "OK" : "E00" );
@@ -1098,8 +1090,7 @@ void GdbServer::gdb_is_thread_alive(const char *pkt)
 
 void GdbServer::gdb_get_thread_list(const char *pkt)
 {
-    if (global_debug_on)
-        fprintf(stderr, "gdb  get thread info\n");
+    avr_debug("gdb  get thread info\n");
     unsigned char allocated = core->stack->m_ThreadList.GetCount() * 3 + 5;
     char * response = new char[allocated];
     response[0] = 'm';
@@ -1136,8 +1127,7 @@ int GdbServer::gdb_get_signal(const char *pkt) {
     signo  = (hex2nib( *pkt++ ) << 4);
     signo += (hex2nib( *pkt++ ) & 0xf);
 
-    if (global_debug_on)
-        fprintf( stderr, "GDB sent signal: %d\n", signo );
+    avr_debug("GdbServer::gdb_get_signal(): signal %d\n", signo );
 
     /* Process signals send via remote protocol from gdb. Signals really don't
     make sense to the program running in the simulator, so we are using
@@ -1258,8 +1248,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
                 return GDB_RET_OK;
             } else if(strcmp(pkt, "qC") == 0) {
                 int thread_id = core->stack->m_ThreadList.GetCurrentThreadForGDB();
-                if (global_debug_on)
-                    fprintf(stderr, "gdb  get current thread: %d\n", thread_id);
+                avr_debug("GdbServer::gdb_parse_packet(): current thread is %d", thread_id);
                 char reply[100];
                 snprintf( reply, sizeof(reply), "QC%02x", thread_id);
                 gdb_send_reply( reply );
@@ -1272,15 +1261,13 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
                 return GDB_RET_OK;
             }
             
-            if(global_debug_on)
-                fprintf(stderr, "gdb query '%s' not supported\n", pkt);
+            avr_debug("GdbServer::gdb_parse_packet(): gdb query '%s' not supported\n", pkt);
             gdb_send_reply("");
             break;
 
         default:
             pkt--;
-            if(global_debug_on)
-                fprintf(stderr, "gdb command '%s' not supported\n", pkt);
+            avr_debug("GdbServer::gdb_parse_packet(): gdb command '%s' not supported\n", pkt);
             gdb_send_reply("");
     }
 
@@ -1328,8 +1315,7 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
                 avr_error("Bad checksum: sent 0x%x <--> computed 0x%x",
                           cksum, pkt_cksum);
 
-            if(global_debug_on)
-                fprintf(stderr, "Recv: \"$%s#%02x\"\n", pkt_buf.c_str(), cksum);
+            avr_debug("Recv: \"$%s#%02x\"\n", pkt_buf.c_str(), cksum);
 
             /* always acknowledge a well formed packet immediately */
             gdb_send_ack();
@@ -1342,14 +1328,12 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
 
         case '-':
             // When debugging do type "set remotetimeout 1000000" in GDB.
-            if(global_debug_on)
-                fprintf(stderr, " gdb -> Nak\n");
+            avr_debug(" gdb -> Nak\n");
             gdb_send_reply(gdb_last_reply(NULL));
             break;
 
         case '+':
-            if(global_debug_on)
-                fprintf(stderr, " gdb -> Ack\n");
+            avr_debug(" gdb -> Ack\n");
             break;
 
         case 0x03:
@@ -1357,8 +1341,7 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
              * telling the simulator to interrupt what it is doing and return
              * control back to gdb.
              */
-            if (global_debug_on)
-                fprintf( stderr, "gdb* Ctrl-C\n" );
+            avr_debug("gdb* Ctrl-C\n" );
             return GDB_RET_CTRL_C;
 
         case -1:
@@ -1438,7 +1421,8 @@ int GdbServer::Step(bool &trueHwStep, SystemClockOffset *timeToNextStepIn_ns) {
 
 void GdbServer::IdleStep() {
     int gdbRet=gdb_receive_and_process_packet(GDB_BLOCKING_OFF);
-    cout << "IdleStep Instance" << this << " RunMode:" << dec << runMode << endl;
+
+    avr_debug("IdleStep Instance %p RunMode: %d", (void *)this, runMode);
 
     if (lastCoreStepFinished) {
         switch(gdbRet) {
@@ -1458,7 +1442,7 @@ void GdbServer::IdleStep() {
                 break;
 
             default:
-                cout << "wondering" << endl;
+                avr_warning("GdbServer::IdleStep(): unmanaged gdb response %d", gdbRet);
         }
     }
 }
