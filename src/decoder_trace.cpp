@@ -38,6 +38,17 @@
 
 using namespace std;
 
+#ifdef __GNUC__
+/*
+ * Calculate index from mask so that (1<<index)==mask.
+ * does not crash if mask has more than 1 bit set
+ * but is faster and more compact than the nested
+ * ternary operations below.
+ */
+#define INDEX_FROM_BITMASK(mask) __builtin_clz(mask)
+
+#else /* __GNUC__ */
+
 /// Calculate index from mask so that (1<<index)==mask. Crash on incorrect values.
 #define INDEX_FROM_BITMASK(mask)  \
     ( (mask) == 0x01 ? 0          \
@@ -49,6 +60,8 @@ using namespace std;
     : (mask) == 0x40 ? 6          \
     : (mask) == 0x80 ? 7          \
 	: abort_in_expression() )
+
+#endif /* __GNUC__ */
 
 int abort_in_expression()
 {
