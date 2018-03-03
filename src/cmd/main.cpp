@@ -139,7 +139,7 @@ const char Usage[] =
 
 int main(int argc, char *argv[]) {
     int c;
-    bool gdbserver_flag = 0;
+    bool gdbserver_flag = false;
     string coredumpfile("unknown");
     string filename("unknown");
     string devicename("unknown");
@@ -283,13 +283,13 @@ int main(int argc, char *argv[]) {
             
             case 'g':
                 avr_message("Running as gdb-server");
-                gdbserver_flag = 1;
+                gdbserver_flag = true;
                 break;
             
             case 'G':
                 avr_message("Running with debug information from gdbserver");
                 global_gdb_debug = 1;
-                gdbserver_flag = 1;
+                gdbserver_flag = true;
                 break;
             
             case 'p':
@@ -439,7 +439,7 @@ int main(int argc, char *argv[]) {
     dman->start(); // start dump session
     
     long steps = 0;
-    if(gdbserver_flag == 0) { // no gdb
+    if(gdbserver_flag == false) { // no gdb
         SystemClock::Instance().Add(dev1);
         if(maxRunTime == 0) {
             steps = SystemClock::Instance().Endless();
