@@ -63,7 +63,7 @@ Socket::Socket(int port) {
     if(::connect(_socket, (sockaddr *) &addr, sizeof(sockaddr)))
         avr_error("Couldn't create connection: %s", strerror(WSAGetLastError()));
 
-    cerr << "User Interface Connection opened by host " << inet_ntoa(addr.sin_addr) << " port " << ntohs(addr.sin_port) << endl;
+    avr_debug("User Interface Connection opened by %s:%hd", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
 
 Socket::~Socket() { 
@@ -104,7 +104,7 @@ void Socket::Write(const string &s) {
     int err = ::write( conn, s.c_str(), s.size());
 #endif
     if (err<0)
-        cerr << "Write in UI fails!" << endl;
+        avr_error("Write in UI fails!");
 }
 
 #if !(defined(_MSC_VER) || defined(HAVE_SYS_MINGW))
@@ -120,8 +120,10 @@ void Socket::OpenSocket(int port) {
     struct sockaddr_in address[1];
     int                i;
 
-    if ( (sock = socket( PF_INET, SOCK_STREAM, 0 )) < 0 )
-        cerr << "Can't create socket:" << strerror(errno) << endl;
+    if ( (sock = socket( PF_INET, SOCK_STREAM, 0 )) < 0 ) {
+        avr_error("Cannot create socket: %s", strerror(errno));
+        return;
+    }
 
 
     /* Tell TCP not to delay small packets.  This greatly speeds up
@@ -138,17 +140,20 @@ void Socket::OpenSocket(int port) {
     memset( &address->sin_addr, 0, sizeof(address->sin_addr) );
 
 
-    if ( bind( sock, (struct sockaddr *)address, sizeof(address) ) )
-        cerr << "Can not bind socket: "<< strerror(errno) << endl;
+    if ( bind( sock, (struct sockaddr *)address, sizeof(address) ) ) {
+        avr_error("Cannot bind socket: %s", strerror(errno));
+        return;
+    }
 
 
     if ( listen(sock, 1) )
     {
         int saved_errno = errno;
-        cerr << "Can not listen on socket: " <<  strerror(saved_errno) << endl;
+        avr_error("Cannot listen on socket: %s", strerror(saved_errno));
+        return;
     }
 
-    fprintf( stderr, "Waiting on port %d for user interface client to connect...\n", port );
+    avr_debug("Waiting on port %d for user interface client to connect...", port );
 
     /* accept() needs this set, or it fails (sometimes) */
     addrLength[0] = sizeof(struct sockaddr *);
@@ -164,7 +169,7 @@ void Socket::OpenSocket(int port) {
         break;          // SIGINT will cause accept to be interrupted 
         }
         */
-        cerr<<  "Accept connection failed: " <<  strerror(saved_errno) << endl;
+        avr_error("Accept connection failed: %s", strerror(saved_errno));
     }
 
     i = 1;
@@ -180,7 +185,9 @@ void Socket::OpenSocket(int port) {
     do {
         ret = connect ( sock, (struct sockaddr *)address, sizeof(address));
         if (ret<0) {
-            cerr << "No connect to socket possible now... retry " << strerror(errno) << endl;
+            avr_error("Cannot connect to %s:%hd, error %s - retrying",
+                      inet_ntoa(address->sin_addr), ntohs(address->sin_port),
+                      strerror(errno));
             sleep(1);
         } else {
             break; //leave retry loop
@@ -202,7 +209,7 @@ void Socket::OpenSocket(int port) {
     /* If we got this far, we now have a client connected and can start 
     processing. */
 
-    cerr << "User Interface Connection opened by host "<< inet_ntoa(address->sin_addr) << " port " <<   ntohs(address->sin_port) << endl;
+    avr_message("User Interface Connection opened by %s:%hd", inet_ntoa(address->sin_addr), ntohs(address->sin_port));
 
     fcntl(conn, F_SETFL, O_NONBLOCK);
 }
