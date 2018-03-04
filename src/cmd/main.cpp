@@ -96,6 +96,7 @@ const char Usage[] =
     "                      handling at port 7777\n"
     "-f --file <name>      load elf-file <name> for simulation in simulated target\n"
     "-d --device <name>    simulate device <name> \n"
+    "                      Use -d list to see the list of supported devices.\n"
     "-g --gdbserver        listen for GDB connection on TCP port defined by -p\n"
     "-G --gdb-debug        listen for GDB connection and write debug info\n"
     "   --gdb-stdin        for use with GDB as 'target remote | ./simulavr'\n"
@@ -134,8 +135,7 @@ const char Usage[] =
     "-o <trace-value-file> Specifies a file into which all available trace value names\n"
     "                      will be written.\n"
     "-V --version          print out version and exit immediately\n"
-    "-h --help             print this help\n"
-    "\n";
+    "-h --help             print this help\n";
 
 int main(int argc, char *argv[]) {
     int c;
@@ -278,7 +278,19 @@ int main(int argc, char *argv[]) {
                 break;
             
             case 'd':
-                devicename = optarg;
+                {
+                    std::string tmpdevname = optarg;
+                    if (AvrFactory::isSupported(tmpdevname)) {
+                        devicename = tmpdevname;
+                    } else {
+                        if (tmpdevname != "list") {
+                            avr_error("Device %s not supported", optarg);
+                        }
+                        cout << "Supported devices:" << endl
+                             << AvrFactory::supportedDevices() << endl;
+                        exit(0);
+                    }
+                }
                 break;
             
             case 'g':
@@ -337,9 +349,7 @@ int main(int argc, char *argv[]) {
                 break;
             
             default:
-                cout << Usage
-                     << "Supported devices:" << endl
-                     << AvrFactory::supportedDevices() << endl;
+                cout << Usage << endl;
                 exit(0);
         }
     }

@@ -72,6 +72,14 @@ std::string AvrFactory::supportedDevices() {
     return ret;
 }
 
+bool AvrFactory::isSupported(const char *name) {
+    std::string strName(name);
+    return isSupported(strName);
+}
+bool AvrFactory::isSupported(const std::string name) {
+    return instance().devmap.find(name) != instance().devmap.end();
+}
+
 AvrFactory& AvrFactory::instance() {
     static AvrFactory f;
     return f;
