@@ -236,7 +236,7 @@ void GdbServerSocketUnix::Write(const void* buf, size_t count) {
     /* FIXME: if this happens a lot, we could try to resend the
     unsent bytes. */
     if((unsigned int)res != count)
-        avr_error("write only wrote %d of %d bytes", res, count);
+        avr_error("write only wrote %d of %lu bytes", res, count);
 }
 
 void GdbServerSocketUnix::SetBlockingMode(int mode) {
