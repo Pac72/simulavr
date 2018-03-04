@@ -1,6 +1,7 @@
 *~
 *.o
 *.lo
+.*.sw[op]
 avr.vpi
 Makefile.in
 Debug/
