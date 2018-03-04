@@ -60,6 +60,7 @@ void AvrDevice::RemoveFromCycleList(Hardware *hw) {
 }
 
 void AvrDevice::Load(const char* fname) {
+    avr_debug("AvrDevice::Load(%s)", fname);
     actualFilename = fname;
     ELFLoad(this);
 }
@@ -382,6 +383,7 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
 }
 
 void AvrDevice::Reset() {
+    avr_debug("AvrDevice::Reset()");
     PC_size = 2;
     PC = 0;
 

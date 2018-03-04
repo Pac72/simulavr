@@ -127,10 +127,12 @@ void SystemClock::SetTraceModeForAllMembers(int trace_on) {
 } 
 
 void SystemClock::Add(SimulationMember *dev) {
+    avr_debug("SystemClock::Add(dev=%p)", (void *)dev);
     syncMembers.Insert(currentTime, dev);
 }
 
 void SystemClock::AddAsyncMember(SimulationMember *dev) {
+    avr_debug("SystemClock::AddAsyncMember(dev=%p)", (void *)dev);
     asyncMembers.push_back(dev);
 }
 
