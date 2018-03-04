@@ -48,6 +48,7 @@ void AvrFactory::reg(const std::string name,
 }
 
 AvrDevice* AvrFactory::makeDevice(const char *in) {
+    avr_debug("AvrFactory::makeDevice(in=%s)", in);
     string devname(in);
     for(unsigned int i = 0; i < devname.size(); i++)
         devname[i] = tolower(devname[i]);

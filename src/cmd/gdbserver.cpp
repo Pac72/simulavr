@@ -165,6 +165,7 @@ void GdbServerSocketMingW::CloseConnection(void) {
 #else
 
 GdbServerSocketUnix::GdbServerSocketUnix(int port) {
+    avr_debug("GdbServerSocketUnix::GdbServerSocketUnix(port=%d)", port);
     conn = -1;        //no connection opened
     
     if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0)
@@ -186,13 +187,20 @@ GdbServerSocketUnix::GdbServerSocketUnix(int port) {
 
     if(listen(sock, 1) < 0)
         avr_error("Can not listen on socket: %s", strerror(errno));
+
+    char buffer[20];
+    inet_ntop(AF_INET, &(address->sin_addr), buffer, sizeof(buffer) - 1);
+    avr_debug("GdbServerSocketUnix::GdbServerSocketUnix(): "
+            "listening to %s:%d for incoming gdb connections", buffer, port);
 }
 
 GdbServerSocketUnix::~GdbServerSocketUnix() {
+    avr_debug("GdbServerSocketUnix::~GdbServerSocketUnix()");
     // do nothing in the moment
 }
 
 void GdbServerSocketUnix::Close(void) {
+    avr_debug("GdbServerSocketUnix::Close()");
     CloseConnection();
     close(sock);
 }
@@ -252,12 +260,18 @@ void GdbServerSocketUnix::SetBlockingMode(int mode) {
 }
 
 bool GdbServerSocketUnix::Connect(void) {
+    avr_debug("GdbServerSocketUnix::Connect()");
     /* accept() needs this set, or it fails (sometimes) */
     socklen_t addrLength = sizeof(struct sockaddr_in);
+
+    avr_debug("Before accept()");
 
     /* We only want to accept a single connection, thus don't need a loop. */
     /* Wait until we have a connection */
     conn = accept(sock, (struct sockaddr *)address, &addrLength);
+
+    avr_debug("After accept(): conn=%d", conn);
+
     if(conn > 0) {
         /* Tell TCP not to delay small packets.  This greatly speeds up
         interactive response. WARNING: If TCP_NODELAY is set on, then gdb
@@ -274,11 +288,13 @@ bool GdbServerSocketUnix::Connect(void) {
                   inet_ntoa(address->sin_addr), ntohs(address->sin_port));
 
         return true;
-    } else
+    } else {
         return false;
+    }
 }
 
 void GdbServerSocketUnix::CloseConnection(void) {
+    avr_debug("GdbServerSocketUnix::CloseConnection()");
     close(conn);
     conn = -1;
 }
@@ -291,6 +307,7 @@ GdbServer::GdbServer(AvrDevice *c, int _port, int debug, int _waitForGdbConnecti
     waitForGdbConnection(_waitForGdbConnection),
     exitOnKillRequest(false)
 {
+    avr_debug("GdbServer::GdbServer()");
     last_reply = NULL; //init static var for last_reply()
     runMode = GDB_RET_NOTHING_RECEIVED;
     lastCoreStepFinished = true;
@@ -304,13 +321,13 @@ GdbServer::GdbServer(AvrDevice *c, int _port, int debug, int _waitForGdbConnecti
 #endif
 
     avr_debug("Waiting on port %d for gdb client to connect...", _port);
-
 }
 
 //make the instance of static list of all gdb servers here
 vector<GdbServer*> GdbServer::allGdbServers;
 
 GdbServer::~GdbServer() {
+    avr_debug("GdbServer::~GdbServer()");
     server->Close();
     avr_free(last_reply);
     delete server;
@@ -344,11 +361,13 @@ void GdbServer::avr_core_flash_write_lo8(int addr, byte val) {
 }
 
 void GdbServer::avr_core_remove_breakpoint(dword pc) {
+    avr_debug("GdbServer::avr_core_remove_breakpoint(pc=0x%.8x)", pc);
     Breakpoints::iterator ii;
     if ((ii= find(core->BP.begin(), core->BP.end(), pc)) != core->BP.end()) core->BP.erase(ii);
 }
 
 void GdbServer::avr_core_insert_breakpoint(dword pc) {
+    avr_debug("GdbServer::avr_core_insert_breakpoint(pc=0x%.8x)", pc);
     core->BP.push_back(pc);
 }
 
@@ -445,13 +464,13 @@ void GdbServer::gdb_send_reply( const char *reply )
             }
         }
 
-        avr_debug("%02x\n", cksum & 0xff );
-
         buf[bytes++] = '#';
         buf[bytes++] = HEX_DIGIT[(cksum >> 4) & 0xf];
         buf[bytes++] = HEX_DIGIT[cksum & 0xf];
 
         server->Write( buf, bytes );
+
+        avr_debug("GdbServer::gdb_send_reply(): Wrote %s - cksum: 0x%02x\n", buf, cksum & 0xff );
     }
 }
 
@@ -474,6 +493,8 @@ r00, r01, ..., r31, SREG, SPL, SPH, PCL, PCH
 Low bytes before High since AVR is little endian. */
 void GdbServer::gdb_read_registers( )
 {
+    avr_debug("GdbServer::gdb_read_registers()");
+
     bool current = core->stack->m_ThreadList.GetCurrentThreadForGDB() == m_gdb_thread_id;
     const Thread* nonrunning = core->stack->m_ThreadList.GetThreadFromGDB(m_gdb_thread_id);
     assert(current || nonrunning->m_sp != 0x0000);
@@ -538,6 +559,7 @@ void GdbServer::gdb_read_registers( )
 /*! GDB is sending values to be written to the registers. Registers are the
 same and in the same order as described in gdb_read_registers() above. */
 void GdbServer::gdb_write_registers(const char *pkt) {
+    avr_debug("GdbServer::gdb_write_registers()");
     int   i;
     byte  bval;
     dword val;                  /* ensure it's a 32 bit value */
@@ -617,6 +639,7 @@ int GdbServer::gdb_extract_hex_num(const char **pkt, char stop) {
 /*! Read a single register. Packet form: 'pn' where n is a hex number with no
 zero padding. */
 void GdbServer::gdb_read_register(const char *pkt) {
+    avr_debug("GdbServer::gdb_read_register(pkt=%s)", pkt);
     int reg;
 
     char reply[MAX_BUF + 1];
@@ -664,6 +687,7 @@ void GdbServer::gdb_read_register(const char *pkt) {
 no zero padding and r is two hex digits for each byte in register (target
 byte order). */
 void GdbServer::gdb_write_register(const char *pkt) {
+    avr_debug("GdbServer::gdb_write_register(pkt=%s)", pkt);
     int reg;
     int val, hval;
     dword dval;
@@ -750,6 +774,7 @@ int GdbServer::gdb_get_addr_len(const char *pkt, char a_end, char l_end, unsigne
 }
 
 void GdbServer::gdb_read_memory(const char *pkt) {
+    avr_debug("GdbServer::gdb_read_memory(pkt=%s)", pkt);
     unsigned int addr = 0;
     int   len  = 0;
     byte *buf;
@@ -858,6 +883,7 @@ void GdbServer::gdb_read_memory(const char *pkt) {
 }
 
 void GdbServer::gdb_write_memory(const char *pkt) {
+    avr_debug("GdbServer::gdb_write_memory(pkt=%s)", pkt);
     unsigned int addr = 0;
     int  len  = 0;
     byte bval;
@@ -980,6 +1006,7 @@ be patched. For hardware breakpoints and watchpoints, length specifies the
 memory region to be monitored. To avoid potential problems, the operations
 should be implemented in an idempotent way. -- GDB 5.0 manual. */
 void GdbServer::gdb_break_point(const char *pkt) {
+    avr_debug("GdbServer::gdb_break_point(pkt=%s)", pkt);
     unsigned int addr = 0;
     int len  = 0;
 
@@ -1047,6 +1074,7 @@ void GdbServer::gdb_break_point(const char *pkt) {
 
 void GdbServer::gdb_select_thread(const char *pkt)
 {
+    avr_debug("GdbServer::gdb_select_thread(pkt=%s)", pkt);
     if(pkt[0] == 'c') {
         gdb_send_reply( "" );  // cannot force thread-switch on target
         return;
@@ -1074,6 +1102,7 @@ void GdbServer::gdb_select_thread(const char *pkt)
 
 void GdbServer::gdb_is_thread_alive(const char *pkt)
 {
+    avr_debug("GdbServer::gdb_is_thread_alive(pkt=%s)", pkt);
     int thread_id = 0;
     if(strcmp(pkt, "-1") == 0)
         thread_id = -1;
@@ -1090,7 +1119,7 @@ void GdbServer::gdb_is_thread_alive(const char *pkt)
 
 void GdbServer::gdb_get_thread_list(const char *pkt)
 {
-    avr_debug("gdb  get thread info\n");
+    avr_debug("GdbServer::gdb_get_thread_list(pkt=%s)", pkt);
     unsigned char allocated = core->stack->m_ThreadList.GetCount() * 3 + 5;
     char * response = new char[allocated];
     response[0] = 'm';
@@ -1136,12 +1165,15 @@ int GdbServer::gdb_get_signal(const char *pkt) {
     switch (signo)
     {
         case GDB_SIGHUP:
+            avr_message("GdbServer::gdb_get_signal(): received GDB_SIGHUP");
             /* Gdb user issuing the 'signal SIGHUP' command tells sim to reset
             itself. We reply with a SIGTRAP the same as we do when gdb
             makes first connection with simulator. */
             core->Reset( );
             gdb_send_reply( "S05" );
             break;
+        default:
+            avr_warning("GdbServer::gdb_get_signal(): received unknown signal");
     }
 
     return signo;
@@ -1151,6 +1183,7 @@ int GdbServer::gdb_get_signal(const char *pkt) {
 Return GDB_RET_KILL_REQUEST if packet is 'kill' command,
 GDB_RET_OK otherwise. */
 int GdbServer::gdb_parse_packet(const char *pkt) {
+    avr_debug("GdbServer::gdb_parse_packet(pkt=%s)",pkt);
     switch (*pkt++) {
         case '?':               /* last signal */
             gdb_send_reply("S05"); /* signal # 5 is SIGTRAP */
@@ -1188,6 +1221,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
 
         case 'D':               /* detach the debugger */
         case 'k':               /* kill request */
+            avr_debug("GdbServer::gdb_parse_packet(): detach debugger/kill request");
             /* Reset the simulator since there may be another connection
             before the simulator stops running. */
             gdb_send_reply("OK");
@@ -1196,6 +1230,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
             return GDB_RET_KILL_REQUEST;
 
         case 'c':               /* continue */
+            avr_debug("GdbServer::gdb_parse_packet(): continue");
             if(!core->Flash->IsProgramLoaded()) {
                 gdb_send_hex_reply("O", "No program to simulate. Use 'load' to upload it.\n");
                 SendPosition(GDB_SIGHUP);
@@ -1205,6 +1240,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
             break;
 
         case 'C':               /* continue with signal */
+            avr_debug("GdbServer::gdb_parse_packet(): continue with signal");
             if(GDB_SIGHUP==gdb_get_signal(pkt)) { //very special solution only for regression testing woth
                                               //old scripts from old simulavr! Continue means not continue
                                               //if signal is SIGHUP :-(, so we do nothing then!
@@ -1218,6 +1254,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
             gdb_get_signal(pkt);
             // no break!
         case 's':               /* step */
+            avr_debug("GdbServer::gdb_parse_packet(): step");
             if(!core->Flash->IsProgramLoaded()) {
                 gdb_send_hex_reply("O", "No program to simulate. Use 'load' to upload it.\n");
                 // No SIGTRAP when GDB does "Single stepping until exit from function __vectors"
@@ -1232,11 +1269,14 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
             break;
 
         case 'q':               /* query requests */
+            avr_debug("GdbServer::gdb_parse_packet(): query requests");
             pkt--;
             if(memcmp(pkt, "qSupported", 10) == 0) {
+                avr_debug("GdbServer::gdb_parse_packet(): query requests: supported");
                 gdb_send_reply("PacketSize=800;qXfer:features:read+");
                 return GDB_RET_OK;
             } else if(memcmp(pkt, "qXfer:features:read:target.xml:", 31) == 0) {
+                avr_debug("GdbServer::gdb_parse_packet(): query requests: target descriptions");
                 // GDB XML target descriptions, since GDB 6.7 (2007-10-10)
                 // see http://sources.redhat.com/gdb/current/onlinedocs/gdb/Target-Descriptions.html
                 gdb_send_reply("l"
@@ -1247,6 +1287,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
                                "</target>\n");
                 return GDB_RET_OK;
             } else if(strcmp(pkt, "qC") == 0) {
+                avr_debug("GdbServer::gdb_parse_packet(): query requests: current thread");
                 int thread_id = core->stack->m_ThreadList.GetCurrentThreadForGDB();
                 avr_debug("GdbServer::gdb_parse_packet(): current thread is %d", thread_id);
                 char reply[100];
@@ -1254,9 +1295,11 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
                 gdb_send_reply( reply );
                 return GDB_RET_OK;
             } else if(strcmp(pkt, "qfThreadInfo") == 0) {
+                avr_debug("GdbServer::gdb_parse_packet(): query requests: qfThreadInfo");
                 gdb_get_thread_list(pkt);
                 return GDB_RET_OK;
             } else if(strcmp(pkt, "qsThreadInfo") == 0) {
+                avr_debug("GdbServer::gdb_parse_packet(): query requests: qsThreadInfo");
                 gdb_send_reply(  "l" );  // note lowercase "L"
                 return GDB_RET_OK;
             }
@@ -1315,7 +1358,8 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
                 avr_error("Bad checksum: sent 0x%x <--> computed 0x%x",
                           cksum, pkt_cksum);
 
-            avr_debug("Recv: \"$%s#%02x\"\n", pkt_buf.c_str(), cksum);
+            avr_debug("GdbServer::gdb_receive_and_process_packet(): "
+                    "Recv: \"$%s#%02x\"", pkt_buf.c_str(), cksum);
 
             /* always acknowledge a well formed packet immediately */
             gdb_send_ack();
@@ -1328,12 +1372,14 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
 
         case '-':
             // When debugging do type "set remotetimeout 1000000" in GDB.
-            avr_debug(" gdb -> Nak\n");
+            avr_debug("GdbServer::gdb_receive_and_process_packet(): "
+                    " gdb -> Nak\n");
             gdb_send_reply(gdb_last_reply(NULL));
             break;
 
         case '+':
-            avr_debug(" gdb -> Ack\n");
+            avr_debug("GdbServer::gdb_receive_and_process_packet(): "
+                    " gdb -> Ack\n");
             break;
 
         case 0x03:
@@ -1341,7 +1387,8 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
              * telling the simulator to interrupt what it is doing and return
              * control back to gdb.
              */
-            avr_debug("gdb* Ctrl-C\n" );
+            avr_debug("GdbServer::gdb_receive_and_process_packet(): "
+                    "gdb* Ctrl-C\n" );
             return GDB_RET_CTRL_C;
 
         case -1:
@@ -1369,6 +1416,7 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
  */
 void GdbServer::Run( )
 {
+    avr_debug("GdbServer::Run()");
     int res;
     char reply[MAX_BUF + 1];
 
@@ -1400,6 +1448,7 @@ void GdbServer::TryConnectGdb() {
         oldTime = newTime;
 
         connState = server->Connect();
+        avr_debug("GdbServer::TryConnectGdb(): connState=%d", connState);
         if(connState)
             allGdbServers.push_back(this);  //remark that we now must called everytime
     }
@@ -1538,6 +1587,7 @@ int GdbServer::InternalStep(bool &untilCoreStepFinished, SystemClockOffset *time
 }
 
 void GdbServer::SendPosition(int signo) {
+    avr_debug("GdbServer::SendPosition(signo=%d)", signo);
     /* Send gdb PC, FP, SP */
     int bytes = 0;
     char reply[MAX_BUF + 1];
