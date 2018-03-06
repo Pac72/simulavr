@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2001-2011 by Serge Lamikhov-Center
+Copyright (C) 2001-2015 by Serge Lamikhov-Center
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,12 @@ class dynamic_section_accessor
              tag == DT_RUNPATH ) {
             string_section_accessor strsec =
                 elf_file.sections[ get_string_table_index() ];
-            str = strsec.get_string( value );
+            const char* result = strsec.get_string( value );
+            if ( 0 == result ) {
+                str.clear();
+                return false;
+            }
+            str = result;
         }
         else {
             str.clear();

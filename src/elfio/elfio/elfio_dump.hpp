@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2001-2011 by Serge Lamikhov-Center
+Copyright (C) 2001-2015 by Serge Lamikhov-Center
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@ THE SOFTWARE.
 #ifndef ELFIO_DUMP_HPP
 #define ELFIO_DUMP_HPP
 
+#include <algorithm>
 #include <string>
 #include <ostream>
 #include <sstream>
@@ -412,6 +413,7 @@ static struct dynamic_tag_t {
     { DT_MAXPOSTAGS     , "MAXPOSTAGS"      },
 };
 
+static const ELFIO::Elf_Xword MAX_DATA_ENTRIES = 64;
 
 //------------------------------------------------------------------------------
 class dump
@@ -602,14 +604,14 @@ class dump
                             << "        Name"
                             << std::endl;
                     }
-                    for ( int i = 0; i < sym_no; ++i ) {
+                    for ( Elf_Half i = 0; i < sym_no; ++i ) {
                         std::string   name;
-                        Elf64_Addr    value;
-                        Elf_Xword     size;
-                        unsigned char bind;
-                        unsigned char type;
-                        Elf_Half      section;
-                        unsigned char other;
+                        Elf64_Addr    value   = 0;
+                        Elf_Xword     size    = 0;
+                        unsigned char bind    = 0;
+                        unsigned char type    = 0;
+                        Elf_Half      section = 0;
+                        unsigned char other   = 0;
                         symbols.get_symbol( i, name, value, size, bind, type, section, other );
                         symbol_table( out, i, name, value, size, bind, type, section, reader.get_class() );
                     }
@@ -684,10 +686,11 @@ class dump
                         void*       desc;
                         Elf_Word    descsz;
                     
-                        notes.get_note( j, type, name, desc, descsz );
-                        // 'name' usually contains \0 at the end. Try to fix it
-                        name = name.c_str();
-                        note( out, j, type, name );
+                        if ( notes.get_note(j, type, name, desc, descsz) ) {
+                            // 'name' usually contains \0 at the end. Try to fix it
+                            name = name.c_str();
+                            note( out, j, type, name );
+                        }
                     }
                     
                     out << std::endl;
@@ -726,8 +729,8 @@ class dump
                     out << "Dynamic section (" << sec->get_name() << ")" << std::endl;
                     out << "[  Nr ] Tag              Name/Value" << std::endl;
                     for ( int i = 0; i < dyn_no; ++i ) {
-                        Elf_Xword   tag;
-                        Elf_Xword   value;
+                        Elf_Xword   tag   = 0;
+                        Elf_Xword   value = 0;
                         std::string str;
                         dynamic.get_entry( i, tag, value, str );
                         dynamic_tag( out, i, tag, value, str, reader.get_class() );
@@ -749,7 +752,7 @@ class dump
                  Elf_Xword     tag,
                  Elf_Xword     value,
                  std::string   str,
-                 unsigned int  elf_class )
+                 unsigned int  /*elf_class*/ )
     {
             out << "[" 
                 << DUMP_DEC_FORMAT(  5 ) << no
@@ -762,6 +765,111 @@ class dump
                 out << DUMP_STR_FORMAT( 32 ) << str                    << " ";
             }
             out << std::endl;
+    }
+
+//------------------------------------------------------------------------------
+    static void
+    section_data( std::ostream& out, const section* sec )
+    {
+        std::ios_base::fmtflags original_flags = out.flags();
+
+        out << sec->get_name() << std::endl;
+        const char* pdata = sec->get_data();
+        if ( pdata ){
+            ELFIO::Elf_Xword i;
+            for ( i = 0; i < std::min( sec->get_size(), MAX_DATA_ENTRIES ); ++i ) {
+                if ( i % 16 == 0 ) {
+                    out << "[" <<  DUMP_HEX_FORMAT( 8 ) << i << "]";
+                }
+
+                out << " " << DUMP_HEX_FORMAT( 2 ) << ( pdata[i] & 0x000000FF );
+
+                if ( i % 16 == 15 ) {
+                    out << std::endl;
+                }
+            }
+            if ( i % 16 != 0 ) {
+                out << std::endl;
+            }
+
+            out.flags(original_flags);
+        }
+
+        return; 
+    }
+
+//------------------------------------------------------------------------------
+    static void
+    section_datas( std::ostream& out, const elfio& reader )
+    {
+        Elf_Half n = reader.sections.size();
+
+        if ( n == 0 ) {
+            return;
+        }
+
+        out << "Section Data:" << std::endl;
+
+        for ( Elf_Half i = 1; i < n; ++i ) { // For all sections
+            section* sec = reader.sections[i];
+            if ( sec->get_type() == SHT_NOBITS ) {
+                continue;
+            }
+            section_data( out, sec );
+        }
+
+        out << std::endl;
+    }
+
+//------------------------------------------------------------------------------
+    static void
+    segment_data( std::ostream& out, Elf_Half no, const segment* seg )
+    {
+        std::ios_base::fmtflags original_flags = out.flags();
+
+        out << "Segment # " << no << std::endl;
+        const char* pdata = seg->get_data();
+        if ( pdata ) {
+            ELFIO::Elf_Xword i;
+            for ( i = 0; i < std::min( seg->get_file_size(), MAX_DATA_ENTRIES ); ++i ) {
+                if ( i % 16 == 0 ) {
+                    out << "[" <<  DUMP_HEX_FORMAT( 8 ) << i << "]";
+                }
+
+                out << " " << DUMP_HEX_FORMAT( 2 ) << ( pdata[i] & 0x000000FF );
+
+                if ( i % 16 == 15 ) {
+                    out << std::endl;
+                }
+            }
+            if ( i % 16 != 0 ) {
+                out << std::endl;
+            }
+
+            out.flags(original_flags);
+        }
+
+        return; 
+    }
+
+//------------------------------------------------------------------------------
+    static void
+    segment_datas( std::ostream& out, const elfio& reader )
+    {
+        Elf_Half n = reader.segments.size();
+
+        if ( n == 0 ) {
+            return;
+        }
+
+        out << "Segment Data:" << std::endl;
+
+        for ( Elf_Half i = 0; i < n; ++i ) { // For all sections
+            segment* seg = reader.segments[i];
+            segment_data( out, i, seg );
+        }
+
+        out << std::endl;
     }
     
   private:

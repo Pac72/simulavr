@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2001-2011 by Serge Lamikhov-Center
+Copyright (C) 2001-2015 by Serge Lamikhov-Center
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ THE SOFTWARE.
 #define ELFIO_SECTION_HPP
 
 #include <string>
-#include <fstream>
+#include <iostream>
 
 namespace ELFIO {
 
@@ -34,8 +34,7 @@ class section
   public:
     virtual ~section() {};
 
-    virtual Elf_Half get_index() const = 0;
-
+    ELFIO_GET_ACCESS_DECL    ( Elf_Half,    index              );
     ELFIO_GET_SET_ACCESS_DECL( std::string, name               );
     ELFIO_GET_SET_ACCESS_DECL( Elf_Word,    type               );
     ELFIO_GET_SET_ACCESS_DECL( Elf_Xword,   flags              );
@@ -54,10 +53,12 @@ class section
     virtual void        append_data( const std::string& data )          = 0;
 
   protected:
-    virtual void set_index( Elf_Half )                = 0;
-    virtual void load( std::ifstream& f,
+    ELFIO_GET_SET_ACCESS_DECL( Elf64_Off, offset );
+    ELFIO_SET_ACCESS_DECL( Elf_Half,  index  );
+    
+    virtual void load( std::istream&  f,
                        std::streampos header_offset ) = 0;
-    virtual void save( std::ofstream& f,
+    virtual void save( std::ostream&  f,
                        std::streampos header_offset,
                        std::streampos data_offset )   = 0;
     virtual bool is_address_initialized() const       = 0;
@@ -146,7 +147,13 @@ class section_impl : public section
     {
         if ( get_type() != SHT_NOBITS ) {
             delete [] data;
-            data = new char[size];
+            try {
+                data = new char[size];
+            } catch (const std::bad_alloc&) {
+                data      = 0;
+                data_size = 0;
+                size      = 0;
+            }
             if ( 0 != data && 0 != raw_data ) {
                 data_size = size;
                 std::copy( raw_data, raw_data + size, data );
@@ -173,7 +180,13 @@ class section_impl : public section
             }
             else {
                 data_size = 2*( data_size + size);
-                char* new_data = new char[data_size];
+                char* new_data;
+                try {
+                    new_data = new char[data_size];
+                } catch (const std::bad_alloc&) {
+                    new_data = 0;
+                    size     = 0;
+                }
                 if ( 0 != new_data ) {
                     std::copy( data, data + get_size(), new_data );
                     std::copy( raw_data, raw_data + size, new_data + get_size() );
@@ -195,6 +208,9 @@ class section_impl : public section
 //------------------------------------------------------------------------------
   protected:
 //------------------------------------------------------------------------------
+    ELFIO_GET_SET_ACCESS( Elf64_Off, offset, header.sh_offset );
+
+//------------------------------------------------------------------------------
     void
     set_index( Elf_Half value )
     {
@@ -203,7 +219,7 @@ class section_impl : public section
 
 //------------------------------------------------------------------------------
     void
-    load( std::ifstream& stream,
+    load( std::istream&  stream,
           std::streampos header_offset )
     {
         std::fill_n( reinterpret_cast<char*>( &header ), sizeof( header ), '\0' );
@@ -212,7 +228,12 @@ class section_impl : public section
 
         Elf_Xword size = get_size();
         if ( 0 == data && SHT_NULL != get_type() && SHT_NOBITS != get_type() ) {
-            data = new char[size];
+            try {
+                data = new char[size];
+            } catch (const std::bad_alloc&) {
+                data      = 0;
+                data_size = 0;
+            }
             if ( 0 != size ) {
                 stream.seekg( (*convertor)( header.sh_offset ) );
                 stream.read( data, size );
@@ -223,7 +244,7 @@ class section_impl : public section
 
 //------------------------------------------------------------------------------
     void
-    save( std::ofstream& f,
+    save( std::ostream&  f,
           std::streampos header_offset,
           std::streampos data_offset )
     {
@@ -243,7 +264,7 @@ class section_impl : public section
   private:
 //------------------------------------------------------------------------------
     void
-    save_header( std::ofstream& f,
+    save_header( std::ostream&  f,
                  std::streampos header_offset ) const
     {
         f.seekp( header_offset );
@@ -252,7 +273,7 @@ class section_impl : public section
 
 //------------------------------------------------------------------------------
     void
-    save_data( std::ofstream& f,
+    save_data( std::ostream&  f,
                std::streampos data_offset ) const
     {
         f.seekp( data_offset );

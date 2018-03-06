@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2001-2011 by Serge Lamikhov-Center
+Copyright (C) 2001-2015 by Serge Lamikhov-Center
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -154,8 +154,8 @@ class relocation_section_accessor
         unsigned char other;
 
         symbol_section_accessor symbols( elf_file, elf_file.sections[get_symbol_table_index()] );
-        ret = symbols.get_symbol( symbol, symbolName, symbolValue,
-                                  size, bind, symbolType, section, other );
+        ret = ret && symbols.get_symbol( symbol, symbolName, symbolValue,
+                                         size, bind, symbolType, section, other );
 
         if ( ret ) { // Was it successful?
             switch ( type ) {
@@ -217,10 +217,10 @@ class relocation_section_accessor
     {
         Elf_Xword info;
         if ( elf_file.get_class() == ELFCLASS32 ) {
-            info = ELF32_R_INFO( symbol, type );
+            info = ELF32_R_INFO( (Elf_Xword)symbol, type );
         }
         else {
-            info = ELF64_R_INFO( symbol, type );
+            info = ELF64_R_INFO((Elf_Xword)symbol, type );
         }
 
         add_entry( offset, info );
@@ -245,10 +245,10 @@ class relocation_section_accessor
     {
         Elf_Xword info;
         if ( elf_file.get_class() == ELFCLASS32 ) {
-            info = ELF32_R_INFO( symbol, type );
+            info = ELF32_R_INFO( (Elf_Xword)symbol, type );
         }
         else {
-            info = ELF64_R_INFO( symbol, type );
+            info = ELF64_R_INFO( (Elf_Xword)symbol, type );
         }
 
         add_entry( offset, info, addend );
@@ -332,8 +332,10 @@ class relocation_section_accessor
         const endianess_convertor& convertor = elf_file.get_convertor();
 
         T entry;
-        entry.r_offset = convertor( offset );
-        entry.r_info   = convertor( info );
+        entry.r_offset = offset;
+        entry.r_info   = info;
+        entry.r_offset = convertor( entry.r_offset );
+        entry.r_info   = convertor( entry.r_info );
 
         relocation_section->append_data( reinterpret_cast<char*>( &entry ), sizeof( entry ) );
     }

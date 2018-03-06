@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2001-2011 by Serge Lamikhov-Center
+Copyright (C) 2001-2015 by Serge Lamikhov-Center
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ THE SOFTWARE.
 #ifndef ELF_HEADER_HPP
 #define ELF_HEADER_HPP
 
-#include <fstream>
+#include <iostream>
 
 namespace ELFIO {
 
@@ -31,8 +31,8 @@ class elf_header
 {
   public:
     virtual ~elf_header() {};
-    virtual bool load( std::ifstream& stream )       = 0;
-    virtual bool save( std::ofstream& stream ) const = 0;
+    virtual bool load( std::istream& stream )       = 0;
+    virtual bool save( std::ostream& stream ) const = 0;
 
     // ELF header functions
     ELFIO_GET_ACCESS_DECL( unsigned char, class              );
@@ -98,7 +98,7 @@ template< class T > class elf_header_impl : public elf_header
     }
 
     bool
-    load( std::ifstream& stream )
+    load( std::istream& stream )
     {
         stream.seekg( 0 );
         stream.read( reinterpret_cast<char*>( &header ), sizeof( header ) );
@@ -107,7 +107,7 @@ template< class T > class elf_header_impl : public elf_header
     }
 
     bool
-    save( std::ofstream& stream ) const
+    save( std::ostream& stream ) const
     {
         stream.seekp( 0 );
         stream.write( reinterpret_cast<const char*>( &header ), sizeof( header ) );
