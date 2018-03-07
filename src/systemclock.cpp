@@ -116,7 +116,7 @@ SystemClock::SystemClock() {
         avr_error("Crazy problem: Second instance of SystemClock created!");
 }
 
-void SystemClock::SetTraceModeForAllMembers(int trace_on) {
+void SystemClock::SetTraceModeForAllMembers(bool trace_on) {
     MinHeap<SystemClockOffset, SimulationMember *>::iterator mi;
     for(mi = syncMembers.begin(); mi != syncMembers.end(); mi++)
     {

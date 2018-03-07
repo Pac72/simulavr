@@ -160,7 +160,7 @@ AvrDevice::AvrDevice(unsigned int _ioSpaceSize,
     
     TraceValue* pc_tracer=trace_direct(&coreTraceGroup, "PC", &cPC);
     coreTraceGroup.RegisterTraceValue(new TwiceTV(coreTraceGroup.GetTraceValuePrefix()+"PCb",  pc_tracer));
-    trace_on = 0;
+    trace_on = false;
     
     fuses = new AvrFuses;
     lockbits = new AvrLockBits;
@@ -269,7 +269,7 @@ bool AvrDevice::opIsCli(unsigned opcode) {
 int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_ns) {
     if (cpuCycles<=0)
         cPC=PC;
-    if(trace_on == 1) {
+    if(trace_on) {
         traceOut << actualFilename << " ";
         traceOut << HexShort(cPC << 1) << dec << ": ";
 
@@ -364,7 +364,7 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
             PC++;
             cpuCycles--;
     } else { //cpuCycles>0
-        if(trace_on == 1)
+        if(trace_on)
             traceOut << "CPU-waitstate";
         cpuCycles--;
     }
@@ -372,7 +372,7 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
     if(nextStepIn_ns != NULL)
         *nextStepIn_ns = clockFreq;
 
-    if(trace_on == 1) {
+    if(trace_on) {
         traceOut << endl;
         sysConHandler.TraceNextLine();
     }

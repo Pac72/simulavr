@@ -121,7 +121,7 @@ class SystemClock
             \todo This method is possibly obsolete! */
         void Reschedule(SimulationMember *sm, SystemClockOffset newTime);
         //! Switches trace mode for all current found simulation members
-        void SetTraceModeForAllMembers(int trace_on);
+        void SetTraceModeForAllMembers(bool trace_on);
         //! Stop Run/Endless or Step asynchronously
         void Stop();
         //! Resets the simulation time and clears table for simulation members and async simulation members

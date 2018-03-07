@@ -89,7 +89,7 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
         int cpuCycles;
 
     public:
-        int trace_on;
+        bool trace_on;
         Breakpoints BP;
         Exitpoints EP;
         word PC;  ///< Next/current instruction index. Multiply by 2 to get an address. This will not be enough for ATmega2560

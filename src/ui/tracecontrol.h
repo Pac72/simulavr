@@ -56,11 +56,11 @@ class TraceControl: public ExternalType
       {
          if ( s == "1" )
          {
-            dev->trace_on = 1;
+            dev->trace_on = true;
          }
          else
          {
-            dev->trace_on = 0;
+            dev->trace_on = false;
          }
       }
 };

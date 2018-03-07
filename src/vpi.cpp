@@ -354,11 +354,11 @@ static PLI_INT32 avr_trace_tf(char *xx) {
     if (tracename.length()) {
     sysConHandler.SetTraceFile(tracename.c_str(), 1000000);
     for (size_t i=0; i < devices.size(); i++)
-        devices[i]->trace_on=1;
+        devices[i]->trace_on = true;
     } else {
     sysConHandler.StopTrace();
     for (size_t i=0; i < devices.size(); i++)
-        devices[i]->trace_on=0;
+        devices[i]->trace_on = false;
     }
     return 0;
 }

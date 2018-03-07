@@ -111,7 +111,7 @@ HWEeprom::~HWEeprom() {
 
 void HWEeprom::SetEearl(unsigned char val) {
     eear = ((eear & 0xff00) + val) & eear_mask;
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "EEAR=0x" << hex << eear << dec;
 }
 
@@ -119,18 +119,18 @@ void HWEeprom::SetEearh(unsigned char val) {
     if((GetSize() <= 256) && (val != 0))
         avr_warning("invalid write access: EEARH=0x%02x, EEPROM size <= 256 byte", val);
     eear = ((eear & 0x00ff) + (val << 8)) & eear_mask;
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "EEAR=0x" << hex << eear << dec;
 }
 
 void HWEeprom::SetEedr(unsigned char val) {
     eedr = val;
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "EEDR=0x"<< hex << (unsigned int)eedr << dec;
 }
 
 void HWEeprom::SetEecr(unsigned char newval) {
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "EECR=0x" << hex << (unsigned int)newval << dec;
     
     eecr = newval & eecr_mask;
@@ -152,7 +152,7 @@ void HWEeprom::SetEecr(unsigned char newval) {
                 eedr = myMemory[eear];
                 eecr &= ~CTRL_READ; // reset read bit isn't described in document!
                 core->AddToCycleList(this);
-                if(core->trace_on == 1)
+                if(core->trace_on)
                     traceOut << " EEPROM: Read = 0x" << hex << (unsigned int)eedr << dec;
             }
             // write will not processed
@@ -168,7 +168,7 @@ void HWEeprom::SetEecr(unsigned char newval) {
                 assert(eear < size);
                 eedr = myMemory[eear];
                 eecr &= ~CTRL_READ; // reset read bit isn't described in document!
-                if(core->trace_on == 1)
+                if(core->trace_on)
                     traceOut << " EEPROM: Read = 0x" << hex << (unsigned int)eedr << dec;
                 break; // to ignore possible write request!
             }
@@ -197,7 +197,7 @@ void HWEeprom::SetEecr(unsigned char newval) {
                         break;
                 }
                 writeDoneTime = SystemClock::Instance().GetCurrentTime() + t;
-                if(core->trace_on == 1)
+                if(core->trace_on)
                     traceOut << " EEPROM: Write start";
             }
             break;
@@ -225,7 +225,7 @@ unsigned int HWEeprom::CpuCycle() {
             eecr &= ~CTRL_ENABLE;
             if(opState == OPSTATE_ENABLED)
                 opState = OPSTATE_READY;
-            if(core->trace_on == 1)
+            if(core->trace_on)
                 traceOut << " EEPROM: WriteEnable cleared";
         }
     }
@@ -251,7 +251,7 @@ unsigned int HWEeprom::CpuCycle() {
                     myMemory[opAddr] = eedr & myMemory[opAddr];
                     break;
             }
-            if(core->trace_on == 1)
+            if(core->trace_on)
                 traceOut << " EEPROM: Write done";
             // now raise irq if enabled and available
             if((irqSystem != NULL) && ((eecr & CTRL_IRQ) == CTRL_IRQ))

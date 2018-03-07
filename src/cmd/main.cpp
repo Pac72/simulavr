@@ -442,7 +442,7 @@ int main(int argc, char *argv[]) {
                 (unsigned long long)1000000000 / dev1->GetClockFreq());
 
     if(sysConHandler.GetTraceState())
-        dev1->trace_on = 1;
+        dev1->trace_on = true;
     
     dman->start(); // start dump session
     

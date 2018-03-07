@@ -92,7 +92,7 @@ void HWStackSram::Push(unsigned char val) {
     spl_reg.hardwareChange(stackPointer & 0x0000ff);
     sph_reg.hardwareChange((stackPointer & 0x00ff00)>>8);
     
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "SP=0x" << hex << stackPointer << " 0x" << int(val) << dec << " ";
     m_ThreadList.OnPush();
     CheckReturnPoints();
@@ -109,7 +109,7 @@ unsigned char HWStackSram::Pop() {
     spl_reg.hardwareChange(stackPointer & 0x0000ff);
     sph_reg.hardwareChange((stackPointer & 0x00ff00)>>8);
     
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "SP=0x" << hex << stackPointer << " 0x" << int(core->GetRWMem(stackPointer)) << dec << " ";
     m_ThreadList.OnPop();
     CheckReturnPoints();
@@ -147,7 +147,7 @@ void HWStackSram::SetSpl(unsigned char val) {
 
     spl_reg.hardwareChange(stackPointer & 0x0000ff);
     
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "SP=0x" << hex << stackPointer << dec << " " ; 
     if(oldSP != stackPointer)
         m_ThreadList.OnSPWrite(stackPointer);
@@ -164,7 +164,7 @@ void HWStackSram::SetSph(unsigned char val) {
 
     sph_reg.hardwareChange((stackPointer & 0x00ff00)>>8);
 
-    if(core->trace_on == 1)
+    if(core->trace_on)
         traceOut << "SP=0x" << hex << stackPointer << dec << " " ; 
     if(oldSP != stackPointer)
         m_ThreadList.OnSPWrite(stackPointer);
