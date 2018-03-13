@@ -45,7 +45,7 @@ using namespace std;
  * but is faster and more compact than the nested
  * ternary operations below.
  */
-#define INDEX_FROM_BITMASK(mask) __builtin_clz(mask)
+#define INDEX_FROM_BITMASK(mask) __builtin_ctz(mask)
 
 #else /* __GNUC__ */
 
