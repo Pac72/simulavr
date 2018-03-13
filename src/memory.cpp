@@ -64,6 +64,14 @@ unsigned int Memory::GetAddressAtSymbol(const string &s) {
     return 0; // to avoid warnings, avr_error aborts the program
 }
 
+void Memory::DumpSymbols() {
+    multimap<unsigned int, string>::iterator ii;
+
+    for(ii = sym.begin(); ii != sym.end(); ii++) {
+        avr_debug("Memory::DumpSymbols(): 0x%.8x %s", ii->first, ii->second.c_str());
+    }
+}
+
 string Memory::GetSymbolAtAddress(unsigned int add){
     string lastName;
     unsigned int lastAddr = 0;

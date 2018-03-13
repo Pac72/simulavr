@@ -63,6 +63,14 @@ void AvrDevice::Load(const char* fname) {
     avr_debug("AvrDevice::Load(%s)", fname);
     actualFilename = fname;
     ELFLoad(this);
+    if (avr_debug_enabled) {
+        avr_debug("AvrDevice::Load(): Flash symbols");
+        Flash->DumpSymbols();
+        avr_debug("AvrDevice::Load(): data symbols");
+        data->DumpSymbols();
+        avr_debug("AvrDevice::Load(): eeprom symbols");
+        eeprom->DumpSymbols();
+    }
 }
 
 void AvrDevice::SetClockFreq(SystemClockOffset nanosec) {
