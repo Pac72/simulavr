@@ -43,6 +43,10 @@
 #define ATTRIBUTE_PRINTF(string_arg, first_arg)
 #endif
 
+//! Verbose enable flag
+extern int global_verbose_on;
+extern int global_verbosity_level;
+
 //! Class, that handle messages to console and also exit/abort calls
 class SystemConsoleHandler {
     
@@ -75,6 +79,8 @@ class SystemConsoleHandler {
         //! Ends a trace line, performs reopen new filestream, if necessary
         void TraceNextLine(void);
         
+        inline bool IsLevelEnabled(const int level) const { return level <= global_verbosity_level; }
+
         //! Format and send a debug message to message stream (default stdout)
         void vfdebug(const int level, const char *fmt, ...)
             ATTRIBUTE_PRINTF(3, 4);
@@ -125,15 +131,10 @@ extern SystemConsoleHandler sysConHandler;
 // redirect old definition ostream traceOut to SystemConsoleHandler.traceStream
 #define traceOut sysConHandler.traceOutStream()
 
-// moved from trace.h
-//! Verbose enable flag
-extern int global_verbose_on;
-extern int global_verbosity_level;
-
-// moved from trace.h
 //! Helper function for writing trace (trace IO access)
 void trioaccess(const char *t, unsigned char val);
 
+#define avr_debug_enabled (sysConHandler.IsLevelEnabled(2))
 #define avr_debug(...)   sysConHandler.vfdebug(2, __VA_ARGS__)
 #define avr_message(...) sysConHandler.vfmessage(__VA_ARGS__)
 #define avr_warning(...) sysConHandler.vfwarning(__FILE__, __LINE__, ## __VA_ARGS__)
