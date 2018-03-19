@@ -148,7 +148,7 @@ const char *branch_opcodes_clear[8] = {
 
 int avr_op_BRBC::Trace() {
     traceOut << branch_opcodes_clear[INDEX_FROM_BITMASK(bitmask)]
-             << " ->" << HexShort(offset * 2) << " ";
+             << " " << HexShort(offset * 2) << " ";
     string sym(core->Flash->GetSymbolAtAddress(core->PC+1+offset));
     int ret = this->operator()();
     
@@ -211,7 +211,7 @@ int avr_op_BST::Trace() {
 int avr_op_CALL::Trace() {
     word K_lsb = core->Flash->ReadMemWord((core->PC + 1) * 2);
     int k = (KH << 16) | K_lsb;
-    traceOut << "CALL 0x" << hex << k * 2 << dec << " ";
+    traceOut << "CALL " << HexShort(k * 2) << " ";
     int ret = this->operator()();
     return ret;
 }
@@ -379,7 +379,7 @@ int avr_op_JMP::Trace() {
     traceOut << "JMP ";
     word offset = core->Flash->ReadMemWord((core->PC + 1) * 2);  //this is k!
     int ret = this->operator()();
-    traceOut << hex << 2 * offset << dec << " ";
+    traceOut << HexShort(2 * offset) << " ";
 
     string sym(core->Flash->GetSymbolAtAddress(offset));
     traceOut << sym << " ";
@@ -409,7 +409,7 @@ int avr_op_LDI::Trace() {
 
 int avr_op_LDS::Trace() {
     word offset = core->Flash->ReadMemWord((core->PC + 1) * 2);  //this is k!
-    traceOut << "LDS R" << (int)R1 << ", " << hex << "0x" << offset << dec  << " ";
+    traceOut << "LDS R" << (int)R1 << ", " << HexShort(offset) << " ";
     int ret = this->operator()();
     return ret;
 }
@@ -463,7 +463,7 @@ int avr_op_LPM_Z::Trace() {
     /* Z is R31:R30 */
     unsigned int Z = core->GetRegZ();
     string sym(core->Flash->GetSymbolAtAddress(Z));
-    traceOut << "FLASH[" << hex << Z << dec << "," << sym << "] ";
+    traceOut << "FLASH[0x" << hex << Z << dec << "," << sym << "] ";
 
     return ret;
 }
@@ -475,7 +475,7 @@ int avr_op_LPM::Trace() {
     /* Z is R31:R30 */
     unsigned int Z = core->GetRegZ();
     string sym(core->Flash->GetSymbolAtAddress(Z));
-    traceOut << "FLASH[" << hex << Z << dec << "," << sym << "] ";
+    traceOut << "FLASH[0x" << hex << Z << dec << "," << sym << "] ";
 
     return ret;
 }
@@ -487,7 +487,7 @@ int avr_op_LPM_Z_incr::Trace() {
     int ret = this->operator()();
     
     string sym(core->Flash->GetSymbolAtAddress(Z));
-    traceOut << "FLASH[" << hex << Z << dec << "," << sym << "] ";
+    traceOut << "FLASH[0x" << hex << Z << dec << "," << sym << "] ";
     return ret;
 }
 
@@ -577,7 +577,7 @@ int avr_op_PUSH::Trace() {
 }
 
 int avr_op_RCALL::Trace() {
-    traceOut << "RCALL " << hex << ((core->PC + K + 1) << 1) << dec << " ";
+    traceOut << "RCALL " << HexShort((core->PC + K + 1) << 1) << " ";
     int ret = this->operator()();
     return ret;
 }
@@ -595,7 +595,8 @@ int avr_op_RETI::Trace() {
 }
 
 int avr_op_RJMP::Trace() {
-    traceOut << "RJMP " << hex << ((core->PC + K + 1) << 1) << dec << " ";
+    traceOut << "RJMP ";
+    traceOut << HexShort((core->PC + K + 1) << 1) << " ";
     int ret = this->operator()();
     return ret;
 }
