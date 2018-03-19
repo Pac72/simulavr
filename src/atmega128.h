@@ -83,6 +83,9 @@ class AvrDevice_atmega128: public AvrDevice {
 
         AvrDevice_atmega128();
         ~AvrDevice_atmega128(); 
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega128"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega128_UNKNOWN"); }
 };
 
 #endif

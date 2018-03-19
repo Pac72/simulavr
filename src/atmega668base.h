@@ -90,7 +90,9 @@ class AvrDevice_atmega668base: public AvrDevice {
                                 unsigned ee_bytes );
         
         ~AvrDevice_atmega668base();
-        
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega668base"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega668base_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega328, see AvrDevice_atmega668base.
@@ -98,6 +100,9 @@ class AvrDevice_atmega328: public AvrDevice_atmega668base {
     public:
         //! Creates the device for ATMega328, see AvrDevice_atmega668base.
         AvrDevice_atmega328() : AvrDevice_atmega668base(2 * 1024, 32 * 1024, 1024) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega328"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega328_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega168, see AvrDevice_atmega668base.
@@ -105,6 +110,9 @@ class AvrDevice_atmega168: public AvrDevice_atmega668base {
     public:
         //! Creates the device for ATMega168, see AvrDevice_atmega668base.
         AvrDevice_atmega168() : AvrDevice_atmega668base(1024, 16 * 1024, 512) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega168"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega168_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega88, see AvrDevice_atmega668base.
@@ -112,6 +120,9 @@ class AvrDevice_atmega88:public AvrDevice_atmega668base {
     public:
         //! Creates the device for ATMega88, see AvrDevice_atmega668base.
         AvrDevice_atmega88() : AvrDevice_atmega668base(1024, 8 * 1024, 512) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega88"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega88_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega48, see AvrDevice_atmega668base.
@@ -119,6 +130,9 @@ class AvrDevice_atmega48:public AvrDevice_atmega668base {
     public:
         //! Creates the device for ATMega48, see AvrDevice_atmega668base.
         AvrDevice_atmega48() : AvrDevice_atmega668base(512, 4 * 1024, 256) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega48"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega48_UNKNOWN"); }
 };
 
 #endif

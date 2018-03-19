@@ -92,6 +92,9 @@ class SerialRxFile: public SerialRxBasic {
     public:
         SerialRxFile(const char *filename);
         ~SerialRxFile();
+
+        virtual std::string getType() { return std::string("SerialRxFile"); }
+        virtual std::string getId() { return std::string("SerialRxFile_UNKNOWN"); }
  };
 
 /** Reads bits from device pins, reconstructs UART bytes and sends them to UI. */
@@ -105,6 +108,9 @@ class SerialRx: public SerialRxBasic, public ExternalType{
         SerialRx(UserInterface *_ui, const char *_name, const char *baseWindow);
         virtual ~SerialRx(){};
         virtual void SetNewValueFromUi(const std::string &);
+
+        virtual std::string getType() { return std::string("SerialRx"); }
+        virtual std::string getId() { return std::string("SerialRx_UNKNOWN"); }
  };
 
 #endif

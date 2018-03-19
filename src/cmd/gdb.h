@@ -182,6 +182,9 @@ class GdbServer: public SimulationMember {
         GdbServer( AvrDevice*, int port, int debugOn, int WaitForGdbConnection=true);
         virtual ~GdbServer();
         void Run();      //helper, would be removed in the future
+
+        virtual std::string getType() { return std::string("GdbServer"); }
+        virtual std::string getId() { return std::string("GdbServer_UNKNOWN"); }
 };
 
 #endif /* SIM_GDB_H */

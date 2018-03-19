@@ -70,6 +70,9 @@ class AvrDevice_atmega8: public AvrDevice {
 
         AvrDevice_atmega8();
         virtual ~AvrDevice_atmega8();
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega8"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega8_UNKNOWN"); }
 };
 
 #endif /* ATMEGA8_H_ */

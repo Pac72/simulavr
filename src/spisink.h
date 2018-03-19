@@ -27,6 +27,9 @@ class SpiSink : public SimulationMember {
 					bool		clockIsIdleHigh	= true,
 					bool		clockSampleOnLeadingEdge = true
 					) throw();
+
+        virtual std::string getType() { return std::string("SpiSink"); }
+        virtual std::string getId() { return std::string("SpiSink_UNKNOWN"); }
 	private:	// SimulationMember
         int	Step(bool &trueHwStep, SystemClockOffset *timeToNextStepIn_ns=0);
 

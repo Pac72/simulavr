@@ -67,6 +67,9 @@ class AvrDevice_attiny2313: public AvrDevice {
 
         AvrDevice_attiny2313();
         ~AvrDevice_attiny2313(); 
+
+        virtual std::string getType() { return std::string("AvrDevice_attiny2313"); }
+        virtual std::string getId() { return std::string("AvrDevice_attiny2313_UNKNOWN"); }
 };
 
 #endif

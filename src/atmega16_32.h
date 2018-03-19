@@ -77,6 +77,9 @@ class AvrDevice_atmega16_32: public AvrDevice {
                               unsigned nrww_start,
                               bool atmega16);
         ~AvrDevice_atmega16_32(); 
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega16_32"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega16_32_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega16, see AvrDevice_atmega16_32.
@@ -84,6 +87,9 @@ class AvrDevice_atmega16: public AvrDevice_atmega16_32 {
     public:
         //! Creates the device for ATMega16, see AvrDevice_atmega16_32.
         AvrDevice_atmega16() : AvrDevice_atmega16_32(1024, 16 * 1024, 512, 0x1c00, true) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega16"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega16_UNKNOWN"); }
 };
 
 //! AVR device class for ATMega32, see AvrDevice_atmega16_32.
@@ -91,6 +97,9 @@ class AvrDevice_atmega32: public AvrDevice_atmega16_32 {
     public:
         //! Creates the device for ATMega32, see AvrDevice_atmega16_32.
         AvrDevice_atmega32() : AvrDevice_atmega16_32(2 * 1024, 32 * 1024, 1024, 0x3800, false) {}
+
+        virtual std::string getType() { return std::string("AvrDevice_atmega32"); }
+        virtual std::string getId() { return std::string("AvrDevice_atmega32_UNKNOWN"); }
 };
 
 #endif

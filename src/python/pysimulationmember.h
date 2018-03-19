@@ -50,6 +50,9 @@ class PySimulationMember: public SimulationMember {
         //! Process a time step, returns time to next call in ns.
         /*! This is a abstract method and have to be overlayed in python! */
         virtual SystemClockOffset DoStep(bool &trueHwStep) = 0;
+
+        virtual std::string getType() { return std::string("PySimulationMember"); }
+        virtual std::string getId() { return std::string("PySimulationMember_UNKNOWN"); }
 };
 
 #endif 

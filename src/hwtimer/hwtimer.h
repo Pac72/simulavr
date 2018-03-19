@@ -924,6 +924,9 @@ class HWTimerTinyX5: public Hardware,
         void Reset();
         //! Process timer/counter unit operations by CPU cycle
         unsigned int CpuCycle();
+        virtual std::string getType() { return std::string("AvrDevice"); };
+        virtual std::string getId() { return std::string("AvrDevice_UNKNOWN"); }
+
 };
 
 #endif

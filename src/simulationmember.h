@@ -28,6 +28,8 @@
 
 #include "systemclocktypes.h"
 
+#include <string>
+
 /** Any class which is needs to be notified at certain time implements this.
 * Implementor usually calls SystemClock::Add(this) and its SimulationMember::Step()
 * will be called later. People, please avoid polling. */
@@ -36,6 +38,9 @@ class SimulationMember {
         virtual ~SimulationMember() { }
         /// Return nonzero if a breakpoint was hit.
         virtual int Step(bool &trueHwStep, SystemClockOffset *timeToNextStepIn_ns=0)=0;
+
+        virtual std::string getType()=0;
+        virtual std::string getId()=0;
 };
 
 #endif 

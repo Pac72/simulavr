@@ -62,6 +62,9 @@ class AvrDevice_at90s4433: public AvrDevice {
         
         AvrDevice_at90s4433();
         ~AvrDevice_at90s4433();
+
+        virtual std::string getType() { return std::string("AvrDevice_at90s4433"); }
+        virtual std::string getId() { return std::string("AvrDevice_at90s4433_UNKNOWN"); }
 };
 
 #endif

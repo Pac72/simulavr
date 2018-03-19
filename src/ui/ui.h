@@ -66,6 +66,9 @@ class UserInterface: public SimulationMember, private Socket, public ExternalTyp
         int Step(bool &, SystemClockOffset *nextStepIn_ns=0);
         void SwitchUpdateOnOff(bool PollFreq);
         void Write(const std::string &s);
+
+        virtual std::string getType() { return std::string("UserInterface"); }
+        virtual std::string getId() { return std::string("UserInterface_UNKNOWN"); }
 };
 
 #endif

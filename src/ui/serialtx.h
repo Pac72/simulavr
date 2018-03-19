@@ -80,6 +80,9 @@ class SerialTxFile: public SerialTxBuffered {
         SerialTxFile(const char *filename);
         ~SerialTxFile();
         virtual int Step(bool &trueHwStep, SystemClockOffset *timeToNextStepIn_ns=0);
+
+        virtual std::string getType() { return std::string("SerialTxFile"); }
+        virtual std::string getId() { return std::string("SerialTxFile_UNKNOWN"); }
 };
 
 
@@ -89,6 +92,9 @@ class SerialTx: public SerialTxBuffered, public ExternalType {
         SerialTx(UserInterface *_ui, const char *_name, const char *baseWindow);
         virtual ~SerialTx(){};
         virtual void SetNewValueFromUi(const std::string &);
+
+        virtual std::string getType() { return std::string("SerialTx"); }
+        virtual std::string getId() { return std::string("SerialTx_UNKNOWN"); }
  };
 
 #endif

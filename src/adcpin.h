@@ -27,6 +27,7 @@
 
 #include <fstream>
 #include "avrdevice.h"
+#include <string>
 
 //! Pin class to provide a analog input signal
 /*! This class allows the analog simulator access
@@ -64,7 +65,9 @@ class AdcPin: public SimulationMember {
         
     public:
         AdcPin(const char* fileName, Net& pinNet) throw();
-        
+
+        virtual std::string getType() { return std::string("AdcPin"); }
+        virtual std::string getId() { return std::string("AdcPin_UNKNOWN"); }
 };
 
 #endif
