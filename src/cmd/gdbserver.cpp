@@ -434,8 +434,6 @@ void GdbServer::gdb_send_reply( const char *reply )
     /* Save the reply to last reply so we can resend if need be. */
     gdb_last_reply( reply );
 
-    avr_debug("GdbServer::gdb_send_reply(): sending $%s#", reply );
-
     if (*reply == '\0')
     {
         server->Write( "$#00", 4 );
@@ -1269,7 +1267,6 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
             break;
 
         case 'q':               /* query requests */
-            avr_debug("GdbServer::gdb_parse_packet(): query requests");
             pkt--;
             if(memcmp(pkt, "qSupported", 10) == 0) {
                 avr_debug("GdbServer::gdb_parse_packet(): query requests: supported");
@@ -1304,7 +1301,7 @@ int GdbServer::gdb_parse_packet(const char *pkt) {
                 return GDB_RET_OK;
             }
             
-            avr_debug("GdbServer::gdb_parse_packet(): gdb query '%s' not supported\n", pkt);
+            avr_debug("GdbServer::gdb_parse_packet(): query request '%s' not supported\n", pkt);
             gdb_send_reply("");
             break;
 
@@ -1373,13 +1370,13 @@ int GdbServer::gdb_receive_and_process_packet(int blocking) {
         case '-':
             // When debugging do type "set remotetimeout 1000000" in GDB.
             avr_debug("GdbServer::gdb_receive_and_process_packet(): "
-                    " gdb -> Nak\n");
+                    "gdb -> Nak\n");
             gdb_send_reply(gdb_last_reply(NULL));
             break;
 
         case '+':
             avr_debug("GdbServer::gdb_receive_and_process_packet(): "
-                    " gdb -> Ack\n");
+                    "gdb -> Ack\n");
             break;
 
         case 0x03:
