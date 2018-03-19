@@ -34,6 +34,9 @@
 #include "avrmalloc.h"
 #include "avrreadelf.h"
 #include <assert.h>
+#include "ui/serialrx.h"
+#include "ui/serialtx.h"
+#include "ui/serialcfg.h"
 
 #include "avrdevice_impl.h"
 
@@ -79,6 +82,37 @@ void AvrDevice::SetClockFreq(SystemClockOffset nanosec) {
 
 SystemClockOffset AvrDevice::GetClockFreq() {
     return clockFreq;
+}
+void AvrDevice::RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
+                                std::vector<SerialCfg *> &serialTxCfgs) {
+    vector<SerialCfg *>::iterator ii;
+    for(ii = serialRxCfgs.begin(); ii != serialRxCfgs.end(); ii++) {
+        const char *filename = (*ii)->filename().c_str();
+        const char *pinName = (*ii)->pin().c_str();
+        unsigned long long baudrate = (*ii)->baudrate();
+        avr_message("Connecting file %s as serial in to pin %s at %llu baud.",
+                filename, pinName, baudrate);
+        Net *net = new Net();
+        SerialRxFile *serial =
+          new SerialRxFile(filename);
+        serial->SetBaudRate(baudrate);
+        net->Add(GetPin(pinName));
+        net->Add(serial->GetPin("rx"));
+    }
+
+    for(ii = serialTxCfgs.begin(); ii != serialTxCfgs.end(); ii++) {
+        const char *filename = (*ii)->filename().c_str();
+        const char *pinName = (*ii)->pin().c_str();
+        unsigned long long baudrate = (*ii)->baudrate();
+        avr_message("Connecting file %s as serial out to pin %s at %llu baud.",
+                filename, pinName, baudrate);
+        Net *net = new Net();
+        SerialTxFile *serial =
+          new SerialTxFile(filename);
+        serial->SetBaudRate(baudrate);
+        net->Add(GetPin(pinName));
+        net->Add(serial->GetPin("tx"));
+    }
 }
 
 Pin *AvrDevice::GetPin(const char *name) {

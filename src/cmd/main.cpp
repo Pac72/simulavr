@@ -58,6 +58,9 @@ using namespace std;
 #include "helper.h"
 #include "specialmem.h"
 #include "irqsystem.h"
+#include "ui/serialcfg.h"
+#include "ui/serialrx.h"
+#include "ui/serialtx.h"
 
 #include "dumpargs.h"
 
@@ -111,6 +114,12 @@ const char Usage[] =
     "-F --cpufrequency     set the cpu frequency to <Hz> \n"
     "-s --irqstatistic     prints statistic informations about irq usage after simulation\n"
     "                      is stopped\n"
+    "-S --serialrx <pin>,<file>,<baudrate>\n"
+    "                      create and add a serial in (Rx to AVR) component\n"
+    "                      reading from <file>\n"
+    "-U --serialtx <pin>,<file>,<baudrate>\n"
+    "                      create and add a serial out (Tx to AVR) component\n"
+    "                      writing to <file>\n"
     "-W --writetopipe <offset>,<file>\n"
     "                      add a special pipe register to device at\n"
     "                      IO-Offset and opens <file> for writing\n"
@@ -165,6 +174,9 @@ int main(int argc, char *argv[]) {
     vector<string> tracer_opts;
     bool tracer_dump_avail = false;
     string tracer_avail_out;
+    SerialCfg *serCfg;
+    vector<SerialCfg *> serialRxCfgs;
+    vector<SerialCfg *> serialTxCfgs;
     
     while (1) {
         //int this_option_optind = optind ? optind : 1;
@@ -181,6 +193,8 @@ int main(int argc, char *argv[]) {
             {"trace", 1, 0, 't'},
             {"version", 0, 0, 'V'},
             {"cpufrequency", 1, 0, 'F'},
+            {"serialrx", 1, 0, 'S'},
+            {"serialtx", 1, 0, 'U'},
             {"readfrompipe", 1, 0, 'R'},
             {"writetopipe", 1, 0, 'W'},
             {"writetoabort", 1, 0, 'a'},
@@ -194,7 +208,7 @@ int main(int argc, char *argv[]) {
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "a:e:f:d:gGm:p:t:uxyzhvnisF:R:W:VT:B:c:C:o:l:", long_options, &option_index);
+        c = getopt_long(argc, argv, "a:e:f:d:gGm:p:t:uxyzhvnisF:S:U:R:W:VT:B:c:C:o:l:", long_options, &option_index);
         if(c == -1)
             break;
         
@@ -211,6 +225,16 @@ int main(int argc, char *argv[]) {
                 } else {
                     global_verbosity_level++;
                 }
+                break;
+            
+            case 'S': //serial rx
+                serCfg = SerialCfg::parse(optarg);
+                serialRxCfgs.push_back(serCfg);
+                break;
+            
+            case 'U': //serial tx
+                serCfg = SerialCfg::parse(optarg);
+                serialTxCfgs.push_back(serCfg);
                 break;
             
             case 'R': //read from pipe 
@@ -414,6 +438,7 @@ int main(int argc, char *argv[]) {
     
     if(filename != "unknown" ) {
         dev1->Load(filename.c_str());
+        dev1->RegisterSerials(serialRxCfgs, serialTxCfgs);
         dev1->Reset(); // reset after load data from file to activate fuses and lockbits
     }
     

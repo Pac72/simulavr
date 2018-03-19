@@ -32,6 +32,7 @@
 #include "net.h"
 #include "traceval.h"
 #include "flashprog.h"
+#include "ui/serialcfg.h"
 
 #include <string>
 #include <map>
@@ -168,6 +169,8 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
         void Reset();
         void SetClockFreq(SystemClockOffset f);
         SystemClockOffset GetClockFreq();
+        void RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
+                             std::vector<SerialCfg *> &serialTxCfgs);
 
         void RegisterPin(const std::string &name, Pin *p) {
             allPins.insert(std::pair<std::string, Pin*>(name, p));
