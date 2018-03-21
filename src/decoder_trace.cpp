@@ -172,7 +172,7 @@ const char *branch_opcodes_set[8] = {
 
 int avr_op_BRBS::Trace() {
     traceOut << branch_opcodes_set[INDEX_FROM_BITMASK(bitmask)]
-             << " ->" << HexShort(offset * 2) << " ";
+             << " " << HexShort(offset * 2) << " ";
     string sym(core->Flash->GetSymbolAtAddress(core->PC+1+offset));
     int ret=this->operator()();
 
