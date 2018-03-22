@@ -73,6 +73,7 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
         static const unsigned int registerSpaceSize;
         const unsigned int iRamSize;
         const unsigned int eRamSize;
+        unsigned long long totalCpuCycles;
         unsigned int devSignature; //!< hold the device signature for this core
         std::string devName; //!< hold the device name, which this core simulate
 
@@ -81,6 +82,10 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
 
         bool opIsCli(unsigned opcode);
 
+        inline void NextCycle() { cpuCycles--, totalCpuCycles++; }
+        inline void SetCurrInstrCycles(int cycles) { cpuCycles = cycles; }
+
+        word lastTracedSymbolPC;
     protected:
         SystemClockOffset clockFreq;  ///< Period of a tick (1/F_OSC) in [ns]
         std::map < std::string, Pin *> allPins;
@@ -93,9 +98,13 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
         bool trace_on;
         Breakpoints BP;
         Exitpoints EP;
-        word PC;  ///< Next/current instruction index. Multiply by 2 to get an address. This will not be enough for ATmega2560
+
+        ///< Next/current instruction index. Multiply by 2 to get an address. This will not be enough for ATmega2560
+        word PC;
+
         /// When mupti-cycle instruction is "processed" this holds its address, PC holds the next instruction.
         word cPC;
+
         int PC_size;
         AvrFlash *Flash;
         FlashProgramming *spmRegister;
@@ -229,6 +238,7 @@ class AvrDevice: public SimulationMember, public TraceValueRegister {
 
         friend void ELFLoad(AvrDevice * core);
 
+        void TraceHeader();
 };
 
 #endif

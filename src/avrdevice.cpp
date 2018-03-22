@@ -23,6 +23,8 @@
  *  $Id$
  */
 
+#include <iomanip>
+
 #include <limits>
 
 #include "avrdevice.h"
@@ -40,8 +42,6 @@
 
 #include "avrdevice_impl.h"
 
-using namespace std;
-
 const unsigned int AvrDevice::registerSpaceSize = 32;
 const unsigned int AvrDevice::totalIoSpace = 0x10000;
 
@@ -56,7 +56,7 @@ void AvrDevice::AddToCycleList(Hardware *hw) {
 }
         
 void AvrDevice::RemoveFromCycleList(Hardware *hw) {
-    vector<Hardware*>::iterator element;
+    std::vector<Hardware*>::iterator element;
     element=find(hwCycleList.begin(), hwCycleList.end(), hw);
     if(element != hwCycleList.end())
         hwCycleList.erase(element);
@@ -85,7 +85,7 @@ SystemClockOffset AvrDevice::GetClockFreq() {
 }
 void AvrDevice::RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
                                 std::vector<SerialCfg *> &serialTxCfgs) {
-    vector<SerialCfg *>::iterator ii;
+    std::vector<SerialCfg *>::iterator ii;
     for(ii = serialRxCfgs.begin(); ii != serialRxCfgs.end(); ii++) {
         const char *filename = (*ii)->filename().c_str();
         const char *pinName = (*ii)->pin().c_str();
@@ -176,7 +176,7 @@ AvrDevice::AvrDevice(unsigned int _ioSpaceSize,
     ioSpaceSize(_ioSpaceSize),
     iRamSize(IRamSize),
     eRamSize(ERamSize),
-    devSignature(numeric_limits<unsigned int>::max()),
+    devSignature(std::numeric_limits<unsigned int>::max()),
     abortOnInvalidAccess(false),
     coreTraceGroup(this),
     deferIrq(false),
@@ -307,18 +307,26 @@ bool AvrDevice::opIsCli(unsigned opcode) {
     return false;
 }
 
+void AvrDevice::TraceHeader() {
+    const std::ios::fmtflags ff(traceOut.flags());
+    traceOut << std::setw(16) << totalCpuCycles << ' '
+        << std::setw(16) << SystemClock::Instance().GetCurrentTime() << ' '
+        << HexShort(cPC << 1) << ": ";
+    if (cPC != lastTracedSymbolPC) {
+        lastTracedSymbolPC = cPC;
+        std::string sym(Flash->GetSymbolAtAddress(cPC));
+        traceOut << std::left << std::setw(40) << sym << std::setw(0) << ' ';
+    } else {
+        traceOut << std::setw(30) << "" << std::setw(0) << ' ';
+    }
+    traceOut.flags(ff);
+}
+
 // do a single core step, (0)->a real hardware step, (1) until the uC finish the opcode!
 int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_ns) {
-    if (cpuCycles<=0)
+    if (cpuCycles<=0) {
         cPC=PC;
-    if(trace_on) {
-        traceOut << actualFilename << " ";
-        traceOut << HexShort(cPC << 1) << dec << ": ";
-
-        string sym(Flash->GetSymbolAtAddress(cPC));
-        traceOut << sym << " ";
-        for (int len = sym.length(); len < 30;len++)
-            traceOut << " " ;
+        TraceHeader();
     }
 
     bool hwWait = false;
@@ -336,7 +344,7 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
             //check for enabled breakpoints here
             if(BP.end() != find(BP.begin(), BP.end(), PC)) {
                 if(trace_on)
-                    traceOut << "Breakpoint found at 0x" << hex << PC << dec << endl;
+                    traceOut << "Breakpoint found at " << HexShort(PC) << std::endl;
                 if(nextStepIn_ns != 0)
                     *nextStepIn_ns=clockFreq;
                 untilCoreStepFinished = !(cpuCycles > 0);
@@ -365,11 +373,13 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
                 if(trace_on)
                     traceOut << "IRQ DETECTED: VectorAddr: " << newIrqPc ;
 
-                irqSystem->IrqHandlerStarted(actualIrqVector);    //what vector we raise?
+                irqSystem->IrqHandlerStarted(actualIrqVector);    //what std::vector we raise?
                 Funktor* fkt = new IrqFunktor(irqSystem, &HWIrqSystem::IrqHandlerFinished, actualIrqVector);
                 stack->SetReturnPoint(stack->GetStackPointer(), fkt);
                 stack->PushAddr(PC);
-                cpuCycles = 4; //push needs 4 cycles! (on external RAM +2, this is handled from HWExtRam!)
+
+                //push needs 4 cycles! (on external RAM +2, this is handled from HWExtRam!)
+                SetCurrInstrCycles(4);
                 status->I = 0; //irq started so remove I-Flag from SREG
                 PC = newIrqPc - 1;   //we add a few lines later 1 so we sub here 1 :-)
 
@@ -379,43 +389,47 @@ int AvrDevice::Step(bool &untilCoreStepFinished, SystemClockOffset *nextStepIn_n
                 if(newIrqPc != 0xffffffff) {
                    deferIrq = true; // do always one instruction before entering irq vect
                    if(trace_on)
-                      traceOut << "IRQ prepared for addr " << hex << newIrqPc << dec << endl;
+                      traceOut << "IRQ prepared for addr " << HexShort(newIrqPc) << std::endl;
                 }
             }
 
             if(cpuCycles <= 0) {
                 if((unsigned int)(PC << 1) >= (unsigned int)Flash->GetSize() ) {
-                    ostringstream os;
-                    os << actualFilename << " Simulation runs out of Flash Space at " << hex << (PC << 1);
-                    string s = os.str();
+                    std::ostringstream os;
+                    os << actualFilename << " Simulation runs out of Flash Space at " << HexShort(PC << 1);
+                    std::string s = os.str();
                     if(trace_on)
-                        traceOut << s << endl;
+                        traceOut << s << std::endl;
                     avr_error("%s", s.c_str());
                 }
 
                 DecodedInstruction *de = (Flash->GetInstruction(PC));
                 if(trace_on) {
-                    cpuCycles = de->Trace();
+                    const std::ios::fmtflags ff(traceOut.flags());
+                    const std::streamsize width = traceOut.width();
+                    traceOut.width(12);
+                    traceOut.setf(std::ios::left);
+                    SetCurrInstrCycles(de->Trace());
+                    traceOut.width(width);
+                    traceOut.flags(ff);
                 } else {
-                    cpuCycles = (*de)(); 
+                    SetCurrInstrCycles((*de)()); 
                 }
                 // report changes on status
                 statusRegister->trigger_change();
             }
 
             PC++;
-            cpuCycles--;
+            NextCycle();
     } else { //cpuCycles>0
-        if(trace_on)
-            traceOut << "CPU-waitstate";
-        cpuCycles--;
+        NextCycle();
     }
 
     if(nextStepIn_ns != NULL)
         *nextStepIn_ns = clockFreq;
 
-    if(trace_on) {
-        traceOut << endl;
+    if(trace_on && cpuCycles <= 0) {
+        traceOut << std::endl;
         sysConHandler.TraceNextLine();
     }
 
@@ -429,15 +443,19 @@ void AvrDevice::Reset() {
     PC_size = 2;
     PC = 0;
 
-    vector<Hardware *>::iterator ii;
+    std::vector<Hardware *>::iterator ii;
     for(ii= hwResetList.begin(); ii != hwResetList.end(); ii++)
         (*ii)->Reset();
 
-    PC = 0; cPC=0;
+    PC = 0;
+    cPC = 0;
     *status = 0;
 
+    lastTracedSymbolPC = -1;
+
     // init the old static vars from Step()
-    cpuCycles = 0;
+    SetCurrInstrCycles(0);
+    totalCpuCycles = 0ull;
 }
 
 void AvrDevice::DeleteAllBreakpoints() {

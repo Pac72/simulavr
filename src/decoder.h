@@ -37,10 +37,12 @@ class AvrFlash;
 //! Base class of core instruction
 /*! All instruction are derived from this class */
 class DecodedInstruction {
-    
+
     protected:
+        static const int instrWidth = 15;
         AvrDevice *core; //!< Link to device instance
         bool size2Word; //!< Flag: true, if instruction has 2 words
+        void TraceSREG(void);
 
     public:
         DecodedInstruction(AvrDevice *c, bool s2w = false): core(c), size2Word(s2w) {}
