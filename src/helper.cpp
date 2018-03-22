@@ -34,25 +34,34 @@ HexShort::HexShort(unsigned short x) { val=x; }
 DecLong::DecLong(unsigned long x) { val=x; }
 
 ostream &operator << (ostream &os, const HexChar &h) {
+    const ios::fmtflags ff(os.flags());
     os << "0x";
     os.width(2);
-    os.fill('0');
-    os << hex << (unsigned int) h.val << dec ;
+    const char fill = os.fill('0');
+    os << hex << (unsigned int) h.val;
+    os.fill(fill);
+    os.flags(ff);
     return os;
 }
 
 ostream &operator << (ostream &os, const HexShort &h) {
+    const ios::fmtflags ff(os.flags());
     os << "0x" ;
     os.width(4);
-    os.fill('0');
-    os << hex << (unsigned int) h.val << dec ;
+    const char fill = os.fill('0');
+    os << hex << (unsigned int) h.val;
+    os.fill(fill);
+    os.flags(ff);
     return os;
 }
 
 ostream &operator << (ostream &os, const DecLong &h) {
+    const ios::fmtflags ff(os.flags());
     os.width(9);
-    os.fill(' ');
-    os << dec << (unsigned long) h.val << dec ;
+    const char fill = os.fill(' ');
+    os << dec << (unsigned long) h.val;
+    os.fill(fill);
+    os.flags(ff);
     return os;
 }
 
