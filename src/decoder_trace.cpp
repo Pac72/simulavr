@@ -188,7 +188,7 @@ int avr_op_BRBC::Trace() {
 const char *branch_opcodes_set[8] = {
     "BRCS",
     "BREQ",
-    "BRMO",
+    "BRMI",
     "BRVS",
     "BRLT",
     "BRHS",
