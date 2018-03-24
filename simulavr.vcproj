@@ -308,6 +308,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\baseobj.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\decoder.h"
 				>
 			</File>
@@ -609,6 +613,10 @@
 			</File>
 			<File
 				RelativePath=".\src\avrmalloc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\baseobj.cpp"
 				>
 			</File>
 			<File

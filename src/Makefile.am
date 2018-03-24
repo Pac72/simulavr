@@ -47,7 +47,7 @@ lib_LTLIBRARIES += libsim.la
 libsim_la_SOURCES = \
   at4433.cpp at8515.cpp atmega668base.cpp atmega128.cpp at90canbase.cpp \
   atmega8.cpp atmega1284abase.cpp attiny25_45_85.cpp atmega16_32.cpp \
-  attiny2313.cpp adcpin.cpp application.cpp externalirq.cpp \
+  attiny2313.cpp adcpin.cpp application.cpp baseobj.cpp externalirq.cpp \
   avrdevice.cpp avrerror.cpp avrfactory.cpp avrmalloc.cpp decoder.cpp \
   decoder_trace.cpp flash.cpp flashprog.cpp hardware.cpp helper.cpp cmd/gdbserver.cpp \
   hwacomp.cpp hwad.cpp hweeprom.cpp avrsignature.cpp avrreadelf.cpp cmd/dumpargs.cpp \
@@ -77,7 +77,7 @@ pkginclude_HEADERS = \
   adcpin.h application.h at4433.h at8515.h atmega128.h atmega16_32.h attiny2313.h \
   at90canbase.h atmega8.h attiny25_45_85.h atmega668base.h atmega1284abase.h avrdevice.h \
   externalirq.h hardware.h helper.h avrdevice_impl.h avrerror.h avrfactory.h avrmalloc.h \
-  string2.h decoder.h externaltype.h flash.h flashprog.h hwdecls.h \
+  baseobj.h string2.h decoder.h externaltype.h flash.h flashprog.h hwdecls.h \
   funktor.h hwacomp.h hwad.h hweeprom.h string2_template.h hwpinchange.h \
   hwport.h hwspi.h hwsreg.h hwstack.h hwuart.h hwwado.h ioregs.h irqsystem.h \
   memory.h net.h pin.h pinatport.h pinnotify.h pinmon.h printable.h rwmem.h \

@@ -71,8 +71,7 @@ class AvrDevice_attinyX5: public AvrDevice {
                            unsigned ee_bytes);
         ~AvrDevice_attinyX5(); 
 
-        virtual std::string getType() { return std::string("AvrDevice_attinyX5"); }
-        virtual std::string getId() { return std::string("AvrDevice_attinyX5_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_attinyX5"); }
 };
 
 //! AVR device class for ATTiny25, see AvrDevice_attinyX5.
@@ -81,8 +80,7 @@ class AvrDevice_attiny25: public AvrDevice_attinyX5 {
         //! Creates the device for ATTiny25, see AvrDevice_attinyX5.
         AvrDevice_attiny25() : AvrDevice_attinyX5(128, 2 * 1024, 128) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_attiny25"); }
-        virtual std::string getId() { return std::string("AvrDevice_attiny25_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_attiny25"); }
 };
 
 //! AVR device class for ATTiny45, see AvrDevice_attinyX5.
@@ -91,8 +89,7 @@ class AvrDevice_attiny45: public AvrDevice_attinyX5 {
         //! Creates the device for ATTiny45, see AvrDevice_attinyX5.
         AvrDevice_attiny45() : AvrDevice_attinyX5(256, 4 * 1024, 256) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_attiny45"); }
-        virtual std::string getId() { return std::string("AvrDevice_attiny45_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_attiny45"); }
 };
 
 //! AVR device class for ATTiny85, see AvrDevice_attinyX5.
@@ -101,8 +98,7 @@ class AvrDevice_attiny85: public AvrDevice_attinyX5 {
         //! Creates the device for ATTiny85, see AvrDevice_attinyX5.
         AvrDevice_attiny85() : AvrDevice_attinyX5(512, 8 * 1024, 512) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_attiny85"); }
-        virtual std::string getId() { return std::string("AvrDevice_attiny85_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_attiny85"); }
 };
 
 #endif

@@ -100,8 +100,7 @@ class AvrDevice_at90canbase: public AvrDevice {
         
         ~AvrDevice_at90canbase();
 
-        virtual std::string getType() { return std::string("AvrDevice_at90canbase"); }
-        virtual std::string getId() { return std::string("AvrDevice_at90canbase_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_at90canbase"); }
 };
 
 //! AVR device class for AT90CAN32, see AvrDevice_at90canbase
@@ -110,8 +109,7 @@ class AvrDevice_at90can32: public AvrDevice_at90canbase {
         //! Creates the device for AT90CAN32, see AvrDevice_atcan90base.
         AvrDevice_at90can32() : AvrDevice_at90canbase(2 * 1024, 32 * 1024, 1024) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_at90can32"); }
-        virtual std::string getId() { return std::string("AvrDevice_at90can32_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_at90can32"); }
 };
 
 //! AVR device class for AT90CAN64, see AvrDevice_at90canbase
@@ -120,8 +118,7 @@ class AvrDevice_at90can64: public AvrDevice_at90canbase {
         //! Creates the device for AT90CAN64, see AvrDevice_atcan90base.
         AvrDevice_at90can64() : AvrDevice_at90canbase(4 * 1024, 64 * 1024, 2 * 1024) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_at90can64"); }
-        virtual std::string getId() { return std::string("AvrDevice_at90can64_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_at90can64"); }
 };
 
 //! AVR device class for AT90CAN128, see AvrDevice_at90canbase
@@ -130,8 +127,7 @@ class AvrDevice_at90can128: public AvrDevice_at90canbase {
         //! Creates the device for AT90CAN128, see AvrDevice_atcan90base.
         AvrDevice_at90can128() : AvrDevice_at90canbase(4 * 1024, 128 * 1024, 4 * 1024) {}
 
-        virtual std::string getType() { return std::string("AvrDevice_at90can128"); }
-        virtual std::string getId() { return std::string("AvrDevice_at90can128_UNKNOWN"); }
+        virtual std::string Type() { return std::string("AvrDevice_at90can128"); }
 };
 
 #endif

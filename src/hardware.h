@@ -26,13 +26,15 @@
 #ifndef HARDWARE
 #define HARDWARE
 
+#include "baseobj.h"
+
 class AvrDevice;
 
 /*! Hardware objects are the subsystems of an AVR device. They have a clock and
   reset input and in addition will define various memory registers through
   which they can be accessed. */
-class Hardware {
-    
+class Hardware : public BaseObj {
+
     public:
         /*! Creates new Hardware and makes it part of the given AvrDevice hw. The
           hardware will receive all reset signals from the AVR, but must
@@ -58,7 +60,6 @@ class Hardware {
         
         /*! Check a level interrupt on the time, where interrupt routine will be called */
         virtual bool LevelInterruptPending(unsigned int vector) { return false; }
-        
 };
 
 #endif

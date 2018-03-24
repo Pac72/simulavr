@@ -88,41 +88,35 @@ public:
                               unsigned ee_bytes );
     ~AvrDevice_atmega1284Abase();
 
-    virtual std::string getType() { return std::string("AvrDevice_atmega1284Abase"); }
-    virtual std::string getId() { return std::string("AvrDevice_atmega1284Abase_UNKNOWN"); }
-
+    virtual std::string Type() { return std::string("AvrDevice_atmega1284Abase"); }
 };
 
 class AvrDevice_atmega1284A: public AvrDevice_atmega1284Abase {
 public:
     AvrDevice_atmega1284A() : AvrDevice_atmega1284Abase(16 * 1024, 128 * 1024, 4 * 1024) {}
 
-    virtual std::string getType() { return std::string("AvrDevice_atmega1284A"); }
-    virtual std::string getId() { return std::string("AvrDevice_atmega1284A_UNKNOWN"); }
+    virtual std::string Type() { return std::string("AvrDevice_atmega1284A"); }
 };
 
 class AvrDevice_atmega644A: public AvrDevice_atmega1284Abase {
 public:
     AvrDevice_atmega644A() : AvrDevice_atmega1284Abase(4 * 1024, 64 * 1024, 2 * 1024) {}
 
-    virtual std::string getType() { return std::string("AvrDevice_atmega644A"); }
-    virtual std::string getId() { return std::string("AvrDevice_atmega644A_UNKNOWN"); }
+    virtual std::string Type() { return std::string("AvrDevice_atmega644A"); }
 };
 
 class AvrDevice_atmega324A: public AvrDevice_atmega1284Abase {
 public:
     AvrDevice_atmega324A() : AvrDevice_atmega1284Abase(2 * 1024, 32 * 1024, 1 * 1024) {}
 
-    virtual std::string getType() { return std::string("AvrDevice_atmega324A"); }
-    virtual std::string getId() { return std::string("AvrDevice_atmega324A_UNKNOWN"); }
+    virtual std::string Type() { return std::string("AvrDevice_atmega324A"); }
 };
 
 class AvrDevice_atmega164A: public AvrDevice_atmega1284Abase {
 public:
     AvrDevice_atmega164A() : AvrDevice_atmega1284Abase(1 * 1024, 16 * 1024,    512  ) {}
 
-    virtual std::string getType() { return std::string("AvrDevice_atmega164A"); }
-    virtual std::string getId() { return std::string("AvrDevice_atmega164A_UNKNOWN"); }
+    virtual std::string Type() { return std::string("AvrDevice_atmega164A"); }
 };
 
 #endif
