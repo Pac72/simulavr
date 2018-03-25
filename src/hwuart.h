@@ -98,7 +98,8 @@ class HWUart: public Hardware, public TraceValueRegister {
         unsigned int rxDataTmp;
         int rxBitCnt;
 
-        int baudCnt16;
+        int baudCntDivReset;
+        int baudCntDiv;
         unsigned char txDataTmp;
         int txBitCnt;
 

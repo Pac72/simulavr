@@ -91,6 +91,19 @@ void HWUart::SetUsr(unsigned char val) {
 
 void HWUart::SetUbrr(unsigned char val) {
     ubrr = (ubrr & 0xff00) | val;
+    /*
+     * The down-counter, running at system clock (f osc ),
+     * is loaded with the UBRRn value each time the counter
+     * has counted down to zero or when the UBRRnL
+     * Register is written.
+     */
+    baudCnt = ubrr + 1;
+    if (usr & U2X) {
+        baudCntDivReset = 8;
+    } else {
+        baudCntDivReset = 16;
+    }
+    baudCntDiv = baudCntDivReset;
 }
 
 void HWUart::SetUbrrhi(unsigned char val) {
@@ -168,9 +181,9 @@ void HWUart::SetUcr(unsigned char val) {
 }
 
 unsigned int HWUart::CpuCycle() {
-    baudCnt++; // TODO: this isn't implemented right, baud clock prescaler is a down counter!
-    if(baudCnt >= (ubrr + 1)) {
-        baudCnt = 0;
+    baudCnt--;
+    if(baudCnt <= 0) {
+        baudCnt = ubrr + 1;
         CpuCycleRx();
         CpuCycleTx();
     }
@@ -387,9 +400,9 @@ unsigned int HWUart::CpuCycleTx() {
     /*************************************** TRANCEIVER PART **********************************/
     //unsigned char usr_old=usr;
 
-    baudCnt16++;
-    if(baudCnt16 >= 16) { // TODO: this isn't implemented right, baud clock prescaler is a down counter!
-        baudCnt16 = 0;
+    baudCntDiv--;
+    if(baudCntDiv <= 0) {
+        baudCntDiv = baudCntDivReset;
 
         if (ucr & TXEN ) {  //transmitter enabled
 
@@ -611,7 +624,8 @@ void HWUart::Reset() {
     ucsrc = UCSZ1 | UCSZ0;
     ubrr = 0;
     baudCnt = 0;
-    baudCnt16 = 0;
+    baudCntDivReset = 16;
+    baudCntDiv = baudCntDivReset;
     
     regSeq = 0;
     
