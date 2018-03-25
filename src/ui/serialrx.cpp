@@ -48,6 +48,9 @@ void SerialRxBasic::PinStateHasChanged(Pin* p){
 
 void SerialRxBasic::Reset(){
     baudrate=115200;
+    highCnt = 0;
+    bitCnt = 0;
+    dataByte = 0;
     maxBitCnt=10; //Start+8Data+Stop
     rxState=RX_WAIT_LOWEDGE;
 }
