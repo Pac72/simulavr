@@ -30,13 +30,13 @@
 
 float AnalogValue::getA(float vcc) {
     switch(dState) {
-        case ST_GND:
+        case AVS_GND:
             return 0.0;
-        case ST_FLOATING:
+        case AVS_FLOATING:
             return REL_FLOATING_POTENTIAL * vcc;
-        case ST_VCC:
+        case AVS_VCC:
             return vcc;
-        case ST_ANALOG:
+        case AVS_ANALOG:
             // check for valid value range
             if(aValue < 0.0)
                 return 0.0;
@@ -47,6 +47,34 @@ float AnalogValue::getA(float vcc) {
 
     //remove warning only:
     return 0;
+}
+
+static bool isDigital(enum AnalogValueState st) {
+    return st >= AVS_GND;
+}
+
+static const float eps = 1.0E-6f;
+
+bool AnalogValue::operator==(const AnalogValue& other) const {
+    if (dState != other.dState) {
+        return false;
+    }
+
+    // from here on, dState == other.dState
+    if (isDigital(dState)) {
+        return dState == other.dState;
+    }
+
+    if (dState == AVS_ANALOG) {
+        float delta = aValue - other.aValue;
+        if (delta > 0) {
+            return delta <= eps;
+        } else {
+            return delta >= -eps;
+        }
+    }
+
+    return false;
 }
 
 int Pin::GetAnalog(void) {
@@ -60,6 +88,10 @@ void Pin::RegisterCallback(HasPinNotifyFunction *h) {
 }
 
 void Pin::SetInState(const Pin &p) { 
+    if (analogVal == p.analogVal) {
+        return;
+    }
+
     analogVal = p.analogVal;
 
     if(pinOfPort != 0) {
@@ -99,20 +131,20 @@ Pin::Pin(T_Pinstate ps) {
     switch (ps) {
         case HIGH: 
         case PULLUP:
-            analogVal.setD(AnalogValue::ST_VCC);
+            analogVal.setD(AVS_VCC);
             break;
 
         case LOW:
         case PULLDOWN:
-            analogVal.setD(AnalogValue::ST_GND);
+            analogVal.setD(AVS_GND);
             break;
 
         case TRISTATE:
-            analogVal.setD(AnalogValue::ST_FLOATING);
+            analogVal.setD(AVS_FLOATING);
             break;
 
         default:
-            analogVal.setD(AnalogValue::ST_GND); // is this right? Which cases use this?
+            analogVal.setD(AVS_GND); // is this right? Which cases use this?
             break;
     }
 }
@@ -188,9 +220,9 @@ Pin::operator bool() const {
     // maybe for TRISTATE not handled complete in simulavr... TODO
     if((outState==TRISTATE) || (outState==PULLUP)) {
         // fix, because in SetInState the output state of connected pin is only transfered to analogVal!
-        if((analogVal.getD() == AnalogValue::ST_VCC) || (analogVal.getD() == AnalogValue::ST_FLOATING))
+        if((analogVal.getD() == AVS_VCC) || (analogVal.getD() == AVS_FLOATING))
             return true;
-        else if(analogVal.getD() == AnalogValue::ST_GND)
+        else if(analogVal.getD() == AVS_GND)
             return false;
         else // could this happen?
             return false;
@@ -211,42 +243,42 @@ Pin& Pin::operator= (char c) {
     switch(c) {
         case 'S':
             outState = SHORTED;
-            analogVal.setD(AnalogValue::ST_GND);
+            analogVal.setD(AVS_GND);
             break;
             
         case 'H':
             outState = HIGH;
-            analogVal.setD(AnalogValue::ST_VCC);
+            analogVal.setD(AVS_VCC);
             break;
             
         case 'h':
             outState = PULLUP;
-            analogVal.setD(AnalogValue::ST_VCC);
+            analogVal.setD(AVS_VCC);
             break;
             
         case 't':
             outState = TRISTATE;
-            analogVal.setD(AnalogValue::ST_FLOATING);
+            analogVal.setD(AVS_FLOATING);
             break;
             
         case 'l':
             outState = PULLDOWN;
-            analogVal.setD(AnalogValue::ST_GND);
+            analogVal.setD(AVS_GND);
             break;
             
         case 'L':
             outState = LOW;
-            analogVal.setD(AnalogValue::ST_GND);
+            analogVal.setD(AVS_GND);
             break;
             
         case 'a':
             outState = ANALOG;
-            analogVal.setD(AnalogValue::ST_FLOATING); // set to floating state, analog value, but not set
+            analogVal.setD(AVS_FLOATING); // set to floating state, analog value, but not set
             break;
             
         case 'A':
             outState = ANALOG_SHORTED;
-            analogVal.setD(AnalogValue::ST_GND);
+            analogVal.setD(AVS_GND);
             break;
     }
 

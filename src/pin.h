@@ -31,6 +31,13 @@
 
 #include "pinnotify.h"
 
+enum AnalogValueState {
+    AVS_FLOATING = 1, //!< floating potential, not connected or tristate, assumed as FLOATING_POTENTIAL
+    AVS_ANALOG   = 2, //!< valid analog value between ground and Vcc (and included)
+    AVS_GND   = 1000, //!< digital state, ground potential
+    AVS_VCC   = 1001, //!< digital state, Vcc potential
+};
+
 class Net;
 
 #define REL_FLOATING_POTENTIAL 0.55
@@ -53,38 +60,34 @@ class AnalogSignalChange {
 class AnalogValue {
 
     private:
-        int  dState;   //!< digital state and validity of aValue
+        enum AnalogValueState dState;   //!< digital state and validity of aValue
         float aValue;  //!< analog value from setA method or constructor (not checked to valid range!)
 
     public:
-        enum {
-            ST_GND,         //!< digital state, ground potential
-            ST_FLOATING,    //!< floating potential, not connected or tristate, assumed as FLOATING_POTENTIAL
-            ST_VCC,         //!< digital state, Vcc potential
-            ST_ANALOG       //!< valid analog value between ground and Vcc (and included)
-        };
 
         //! standard constructor, status is floating
-        AnalogValue(void) { dState = ST_FLOATING; aValue = 0.0; }
+        AnalogValue(void) { dState = AVS_FLOATING; aValue = 0.0; }
         //! analog value constructor, set real analog value
-        AnalogValue(float val) { dState = ST_ANALOG; aValue = val; }
+        AnalogValue(float val) { dState = AVS_ANALOG; aValue = val; }
         //! digital value constructor, set a digital state
-        AnalogValue(int dig) { dState = dig; aValue = 0.0; }
+        AnalogValue(AnalogValueState dig) { dState = dig; aValue = 0.0; }
 #ifndef SWIG
         //! copy operator
         AnalogValue &operator= (const AnalogValue& a) { dState = a.dState; aValue = a.aValue; return *this; }
 #endif
         //! set a digital state, see enum definition
-        void setD(int dig) { dState = dig; aValue = 0.0; }
+        void setD(AnalogValueState dig) { dState = dig; aValue = 0.0; }
         int getD(void) const { return dState; }
         //! set analog value, no check to value range between ground and vcc
-        void setA(float val) { dState = ST_ANALOG; aValue = val; }
+        void setA(float val) { dState = AVS_ANALOG; aValue = val; }
         //! calculate real voltage potential, needs value of Vcc potential
         float getA(float vcc);
         //! get raw analog value (no calculation, just content of aValue
         float getRaw(void) const { return aValue; }
         //! test, if real analog value is available
-        bool analogValid(void) const { return dState == ST_ANALOG; }
+        bool analogValid(void) const { return dState == AVS_ANALOG; }
+
+        bool operator==(const AnalogValue& other) const;
 };
 
 //! Pin class, handles input and output to external parts
