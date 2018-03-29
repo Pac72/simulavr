@@ -99,8 +99,8 @@ class SystemClock
         //! Increments the current simulation time with a offset
         /*! Attention! Use this method with care, if you don't want crazy results */
         void IncrTime(SystemClockOffset of) { currentTime += of; }
-        //! Add a simulation member (normally a device)
-        void Add(SimulationMember *dev);
+        //! Add a simulation member (normally a device) and schedule it after delayNanos ns
+        void Add(SimulationMember *dev, SystemClockOffset delayNanos = 0);
         //! Add a async simulation member, this will be called every simulation step.
         void AddAsyncMember(SimulationMember *dev);
         //! Process one simulation step

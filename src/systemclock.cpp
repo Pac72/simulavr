@@ -126,9 +126,9 @@ void SystemClock::SetTraceModeForAllMembers(bool trace_on) {
     }
 } 
 
-void SystemClock::Add(SimulationMember *dev) {
-    avr_debug("SystemClock::Add(dev=%p)", (void *)dev);
-    syncMembers.Insert(currentTime, dev);
+void SystemClock::Add(SimulationMember *dev, SystemClockOffset delayNanos) {
+    avr_debug("SystemClock::Add(dev=%s)", dev->FullId().c_str());
+    syncMembers.Insert(currentTime + delayNanos, dev);
 }
 
 void SystemClock::AddAsyncMember(SimulationMember *dev) {
