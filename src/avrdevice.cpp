@@ -90,8 +90,8 @@ void AvrDevice::RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
         const char *filename = (*ii)->filename().c_str();
         const char *pinName = (*ii)->pin().c_str();
         unsigned long long baudrate = (*ii)->baudrate();
-        avr_message("Connecting file %s as serial in to pin %s at %llu baud.",
-                filename, pinName, baudrate);
+        avr_message("Virtual serial RX reading from pin %s and writing to file %s at %llu baud.",
+                pinName, filename, baudrate);
         Net *net = new Net();
         SerialRxFile *serial =
           new SerialRxFile(filename);
@@ -104,7 +104,7 @@ void AvrDevice::RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
         const char *filename = (*ii)->filename().c_str();
         const char *pinName = (*ii)->pin().c_str();
         unsigned long long baudrate = (*ii)->baudrate();
-        avr_message("Connecting file %s as serial out to pin %s at %llu baud.",
+        avr_message("Virtual serial TX reading from file %s and writing to pin %s at %llu baud.",
                 filename, pinName, baudrate);
         Net *net = new Net();
         SerialTxFile *serial =
