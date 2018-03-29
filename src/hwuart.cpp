@@ -99,8 +99,14 @@ void HWUart::SetUbrr(unsigned char val) {
      */
     baudCnt = ubrr + 1;
     if (usr & U2X) {
+        cntRxFirstSample = 4;
+        cntRxLastSample = 6;
+        cntRxTotalSamples = 8;
         baudCntDivReset = 8;
     } else {
+        cntRxFirstSample = 8;
+        cntRxLastSample = 10;
+        cntRxTotalSamples = 16;
         baudCntDivReset = 16;
     }
     baudCntDiv = baudCntDivReset;
@@ -218,14 +224,14 @@ unsigned int HWUart::CpuCycleRx() {
 
             case RX_READ_STARTBIT:
                 cntRxSamples++;
-                if (cntRxSamples>=8 && cntRxSamples<=10) {
+                if (cntRxSamples >= cntRxFirstSample && cntRxSamples <= cntRxLastSample) {
                     if (pinRx==0) {
                         rxLowCnt++;
                     } else {
                         rxHighCnt++;
                     }
                 }
-                if (cntRxSamples>15) {
+                if (cntRxSamples >= cntRxTotalSamples) {
                     if ( rxLowCnt>rxHighCnt) { //yes the startbit is low 
                         cntRxSamples=0;
                         rxState= RX_READ_DATABIT;
@@ -241,7 +247,7 @@ unsigned int HWUart::CpuCycleRx() {
 
             case RX_READ_DATABIT:
                 cntRxSamples++;
-                if (cntRxSamples>=8 && cntRxSamples<=10) {
+                if (cntRxSamples >= cntRxFirstSample && cntRxSamples <= cntRxLastSample) {
                     if (pinRx==0) {
                         rxLowCnt++;
                     } else {
@@ -249,7 +255,7 @@ unsigned int HWUart::CpuCycleRx() {
                     }
                 }
 
-                if (cntRxSamples>15) {
+                if (cntRxSamples >= cntRxTotalSamples) {
                     if ( rxLowCnt<rxHighCnt) { //the bit was high
                         rxDataTmp|=(1<<rxBitCnt);
                         readParity^=1; 
@@ -274,7 +280,7 @@ unsigned int HWUart::CpuCycleRx() {
 
             case RX_READ_PARITY:
                 cntRxSamples++;
-                if (cntRxSamples>=8 && cntRxSamples<=10) {
+                if (cntRxSamples >= cntRxFirstSample && cntRxSamples <= cntRxLastSample) {
                     if (pinRx==0) {
                         rxLowCnt++;
                     } else {
@@ -282,7 +288,7 @@ unsigned int HWUart::CpuCycleRx() {
                     }
                 }
 
-                if (cntRxSamples>15) {
+                if (cntRxSamples >= cntRxTotalSamples) {
                     bool actParity;
 
                     if ( rxLowCnt<rxHighCnt) { //the bit was high 
@@ -307,7 +313,7 @@ unsigned int HWUart::CpuCycleRx() {
 
             case RX_READ_STOPBIT:
                 cntRxSamples++;
-                if (cntRxSamples>=8 && cntRxSamples<=10) {
+                if (cntRxSamples >= cntRxFirstSample && cntRxSamples <= cntRxLastSample) {
                     if (pinRx==0) {
                         rxLowCnt++;
                     } else {
@@ -316,8 +322,8 @@ unsigned int HWUart::CpuCycleRx() {
                 }
 
                 if (
-                        ((ucsrc&USBS) && (cntRxSamples>16)) || //if 2 stopbits used we have to wait full bit frame
-                        ((!(ucsrc&USBS)) && (cntRxSamples>10)) //in case of only 1 stopbit we can shorten the stopbit
+                        ((ucsrc&USBS) && (cntRxSamples > cntRxTotalSamples)) || //if 2 stopbits used we have to wait full bit frame
+                        ((!(ucsrc&USBS)) && (cntRxSamples > cntRxLastSample)) //in case of only 1 stopbit we can shorten the stopbit
                    ) {
 
                     if ( rxLowCnt<rxHighCnt) { //the bit was high this is ok
@@ -355,13 +361,13 @@ unsigned int HWUart::CpuCycleRx() {
 
             case RX_READ_STOPBIT2:
                 cntRxSamples++;
-                if (cntRxSamples>=8 && cntRxSamples<=10) {
+                if (cntRxSamples >= cntRxFirstSample && cntRxSamples <= cntRxLastSample) {
                     if (pinRx==0) {
                         rxLowCnt++;
                     } else {
                         rxHighCnt++;
                     }
-                } else if (cntRxSamples>10) { //the last stopbit could allways be shorter than normal data-bit
+                } else if (cntRxSamples > cntRxLastSample) { //the last stopbit could allways be shorter than normal data-bit
                     if ( rxLowCnt<rxHighCnt) { //the bit was high this is ok
                         usr&=0xff-FE;
                     } else { //stopbit was low so set framing error
@@ -624,6 +630,9 @@ void HWUart::Reset() {
     ucsrc = UCSZ1 | UCSZ0;
     ubrr = 0;
     baudCnt = 0;
+    cntRxFirstSample = 8;
+    cntRxLastSample = 10;
+    cntRxTotalSamples = 16;
     baudCntDivReset = 16;
     baudCntDiv = baudCntDivReset;
     

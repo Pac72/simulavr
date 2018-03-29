@@ -102,6 +102,7 @@ class HWUart: public Hardware, public TraceValueRegister {
         int baudCntDiv;
         unsigned char txDataTmp;
         int txBitCnt;
+        int cntRxFirstSample, cntRxLastSample, cntRxTotalSamples;
 
     public:
         //! Creates a instance of HWUart class
