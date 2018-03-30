@@ -77,7 +77,7 @@ class SerialTxFile: public SerialTxBuffered {
         // control over buffers (and their avoidance).
         int fd;
     public:
-        SerialTxFile(const char *filename);
+        SerialTxFile(const char *filename, SystemClockOffset delayNanos);
         ~SerialTxFile();
         virtual int Step(bool &trueHwStep, SystemClockOffset *timeToNextStepIn_ns=0);
 

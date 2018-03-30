@@ -115,11 +115,17 @@ const char Usage[] =
     "-s --irqstatistic     prints statistic informations about irq usage after simulation\n"
     "                      is stopped\n"
     "-S --serialrx <pin>,<file>,<baudrate>\n"
-    "                      create and add a virtual serial port receiving from AVR <pin>\n"
-    "                      at <baud> rate and writing to <file>\n"
-    "-U --serialtx <pin>,<file>,<baudrate>\n"
+    "                      create a virtual serial port receiving from AVR <pin>\n"
+    "                      at <baud> rate and writing to <file> and adds it to the simulation\n"
+    "-U --serialtx <pin>,<file>,<baudrate>[,<delayNanos>]\n"
     "                      create and add a virtual serial port reading from <file>\n"
-    "                      at <baud> rate and transmitting to AVR <pin>\n"
+    "                      at <baud> rate and transmitting to AVR <pin> and adds it\n"
+    "                      to the simulation after an optional delay of <delayNanos> nanoseconds\n"
+    "                      Note: adding a virtual serial TX at the very beginning of the simulation\n"
+    "                      may cause some data to get lost because the AVR receiver\n"
+    "                      is not yet ready (it hasn't been configured yet, it isn't active yet...).\n"
+    "                      It is advisable to use a sensible delay value when adding\n"
+    "                      a virtual serial TX\n"
     "-W --writetopipe <offset>,<file>\n"
     "                      add a special pipe register to device at\n"
     "                      IO-Offset and opens <file> for writing\n"
@@ -228,12 +234,12 @@ int main(int argc, char *argv[]) {
                 break;
             
             case 'S': //serial rx
-                serCfg = SerialCfg::parse(optarg);
+                serCfg = SerialCfg::parseRx(optarg);
                 serialRxCfgs.push_back(serCfg);
                 break;
             
             case 'U': //serial tx
-                serCfg = SerialCfg::parse(optarg);
+                serCfg = SerialCfg::parseTx(optarg);
                 serialTxCfgs.push_back(serCfg);
                 break;
             

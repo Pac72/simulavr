@@ -137,7 +137,9 @@ void SerialTxBuffered::SetHexInput(bool newValue){
 #include <fcntl.h>
 #include <poll.h>
 
-SerialTxFile::SerialTxFile(const char *filename) {
+//SerialTxFile::SerialTxFile(const char *filename) : SerialTxBuffered() {
+SerialTxFile::SerialTxFile(const char *filename, SystemClockOffset delayNanos) {
+    avr_debug("SerialTxFile::SerialTxFile()");
     if (std::string(filename) == "-")
         fd = fileno(stdin);
     else
@@ -146,7 +148,7 @@ SerialTxFile::SerialTxFile(const char *filename) {
         avr_error("open input file failed");
     Reset();
 
-    SystemClock::Instance().Add(this);
+    SystemClock::Instance().Add(this, delayNanos);
 }
 
 SerialTxFile::~SerialTxFile() {

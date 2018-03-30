@@ -32,15 +32,21 @@ class SerialCfg {
         std::string _pin;
         std::string _filename;
         uint32_t _baudrate;
+        int64_t _delayNanos;
 
+        static SerialCfg * parse(char *cstr, bool allowDelay);
     public:
-        SerialCfg(std::string pin, std::string filename, uint32_t baudrate) :
-            _pin(pin), _filename(filename), _baudrate(baudrate) { }
+        SerialCfg(std::string pin, std::string filename,
+                uint32_t baudrate, int64_t delayNanos) :
+            _pin(pin), _filename(filename),
+            _baudrate(baudrate), _delayNanos(delayNanos) { }
 
-        inline std::string & pin() { return _pin; }
-        inline std::string & filename() { return _filename; }
-        inline uint32_t baudrate() { return _baudrate; }
-        static SerialCfg * parse(char *cstr);
+        std::string & pin() { return _pin; }
+        std::string & filename() { return _filename; }
+        uint32_t baudrate() { return _baudrate; }
+        int64_t delayNanos() { return _delayNanos; }
+        static SerialCfg * parseRx(char *cstr);
+        static SerialCfg * parseTx(char *cstr);
 };
 
 #endif

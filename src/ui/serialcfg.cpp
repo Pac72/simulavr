@@ -28,6 +28,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+bool StringToInt64(const char *s, int64_t *n, char **endptr, int base) {
+#if __WORDSIZE == 64
+    return StringToLong(s, n, endptr, base);
+#else
+    return StringToLongLong(s, n, endptr, base);
+#endif
+}
+
 static void assertOrDie(bool cond, const char *msg, const char *cstr) {
     if (!cond) {
         std::cerr << "Invalid SerialCfg string \"" << cstr << "\": " << msg << std::endl;
@@ -36,7 +44,7 @@ static void assertOrDie(bool cond, const char *msg, const char *cstr) {
     }
 }
 
-SerialCfg * SerialCfg::parse(char *cstr) {
+SerialCfg * SerialCfg::parse(char *cstr, bool allowDelay) {
     char *saveptr;
     char *buf = strdup(cstr);
     char *pp, *end;
@@ -58,7 +66,30 @@ SerialCfg * SerialCfg::parse(char *cstr) {
         exit(1);
     }
 
+    // optional 
+    pp = strtok_r(NULL, ",", &saveptr);
+    int64_t delayNanos = 0;
+    if (pp != NULL) {
+        if (allowDelay) {
+            if (!StringToInt64(pp, &delayNanos, &end, 10)) {
+                std::cerr << "delayNanos " << pp << " is not a number" << std::endl;
+                exit(1);
+            }
+        } else {
+            std::cerr << "delayNanos not allowed here, remove '," << pp << "'" << std::endl;
+            exit(1);
+        }
+    }
+
     free(buf);
 
-    return new SerialCfg(pinname, filename, (uint32_t)ulBaudrate);
+    return new SerialCfg(pinname, filename, (uint32_t)ulBaudrate, (int64_t)delayNanos);
+}
+
+SerialCfg * SerialCfg::parseRx(char *cstr) {
+    return parse(cstr, false);
+}
+
+SerialCfg * SerialCfg::parseTx(char *cstr) {
+    return parse(cstr, true);
 }

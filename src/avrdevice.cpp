@@ -104,11 +104,12 @@ void AvrDevice::RegisterSerials(std::vector<SerialCfg *> &serialRxCfgs,
         const char *filename = (*ii)->filename().c_str();
         const char *pinName = (*ii)->pin().c_str();
         unsigned long long baudrate = (*ii)->baudrate();
-        avr_message("Virtual serial TX reading from file %s and writing to pin %s at %llu baud.",
-                filename, pinName, baudrate);
+        long long delayNanos = (*ii)->delayNanos();
+        avr_message("Virtual serial TX reading from file %s and writing to pin %s at %llu baud. Will be added after %lld ns",
+                filename, pinName, baudrate, delayNanos);
         Net *net = new Net();
         SerialTxFile *serial =
-          new SerialTxFile(filename);
+          new SerialTxFile(filename, delayNanos);
         serial->SetBaudRate(baudrate);
         net->Add(GetPin(pinName));
         net->Add(serial->GetPin("tx"));

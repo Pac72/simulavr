@@ -243,14 +243,17 @@ void ELFLoad(AvrDevice * core) {
                                        ((siminfo_long_t *)data_ptr)->value);
                     break;
                   case SIMINFO_TAG_SERIAL_IN:
-                    avr_message("Connecting file %s as serial in to pin %s at %d baud.",
+                    {
+                        long long safetyDelayNanos = 500000;
+                        avr_message("Connecting file %s as serial in to pin %s at %d baud."
+                                "Adding it to the simulation with a safety delay of %lld ns",
                                 ((siminfo_serial_t *)data_ptr)->filename,
                                 ((siminfo_serial_t *)data_ptr)->pin,
-                                ((siminfo_serial_t *)data_ptr)->baudrate);
-                    {
+                                ((siminfo_serial_t *)data_ptr)->baudrate,
+                                safetyDelayNanos);
                         Net *net = new Net();
                         SerialTxFile *serial =
-                          new SerialTxFile(((siminfo_serial_t *)data_ptr)->filename);
+                          new SerialTxFile(((siminfo_serial_t *)data_ptr)->filename, safetyDelayNanos);
                         serial->SetBaudRate(((siminfo_serial_t *)data_ptr)->baudrate);
                         net->Add(core->GetPin(((siminfo_serial_t *)data_ptr)->pin));
                         net->Add(serial->GetPin("tx"));
